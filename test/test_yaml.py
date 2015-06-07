@@ -8,6 +8,7 @@ from configmakover.read import *
 
 import utils
 
+logging.basicConfig( level=logging.DEBUG )
 
 def test_simple():
   data = '''
