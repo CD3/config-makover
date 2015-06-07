@@ -1,5 +1,6 @@
 
 from mako.template import Template
+import pickle
 import yaml
 import dpath.util
 import logging
@@ -32,7 +33,6 @@ def toNums( data ):
 
   return data
 
-
 def toAttrDict( d ):
   '''Replaces all intances of dict() with AttrDict() in a data tree.'''
   it = iterator( d )
@@ -45,6 +45,13 @@ def toAttrDict( d ):
   else:
     return d
 
+
+
+
+loader = pickle.loads
+dumper = pickle.dumps
+
+
 def renderTree( data, imports = None, strict_undefined = True ):
   '''Renders a nested data structure with itself.
 
@@ -56,7 +63,7 @@ def renderTree( data, imports = None, strict_undefined = True ):
      this function will replace parameter references with thier values.
      Mako Templates are used for the rendering with the following steps
      
-      - the data tree is written to a data string in YAML
+      - the data tree is written to a data string
       - the data string loaded as a Mako template
       - the data string s rendered using the data tree as the context
       - the data string is decoded back to a data tree, replacing the original
@@ -65,20 +72,20 @@ def renderTree( data, imports = None, strict_undefined = True ):
      '''
 
   input_text = ''
-  # dump the tree to a YAML string
-  output_text = yaml.dump(data, default_flow_style=False)
-  # keep rendering until the YAML string representation of the tree does not change
+  # dump the tree to a string
+  output_text = dumper(data)
+  # keep rendering until the string representation of the tree does not change
   while input_text != output_text:
     input_text = output_text
-    # run the YAML string through a Mako template using the tree for context
+    # run the string through a Mako template using the tree for context
     logging.debug("RENDERING")
     logging.debug( input_text )
     t = Template(input_text, imports=imports, ignore_expression_errors=True)
     output_text = t.render( **toAttrDict(data) )
-    data = yaml.load( output_text )
+    data = loader( output_text )
     # turn everything we can into a number and update output_text
     data = toNums(data)
-    output_text = yaml.dump(data)
+    output_text = dumper(data)
     logging.debug("RENDERED")
     logging.debug( output_text )
 
@@ -129,12 +136,12 @@ def scopedRenderTree( data, imports = None, strict_undefined = True ):
     return data
 
   input_text = ''
-  output_text = yaml.dump(data, default_flow_style=False)
+  output_text = dumper(data)
   # run data through rendering until it doesn't change anymore
   while input_text != output_text:
     input_text = output_text
     data = singlePass(data)
-    output_text = yaml.dump(data, default_flow_style=False)
+    output_text = dumper(data)
 
   if strict_undefined:
     # run make one more time with strict errors so that we will get
