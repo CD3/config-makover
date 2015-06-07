@@ -1,7 +1,7 @@
 
 from mako.template import Template
-import pickle
-import yaml
+import pickle, yaml, json
+import hashlib
 import dpath.util
 import logging
 
@@ -50,6 +50,10 @@ def toAttrDict( d ):
 
 loader = pickle.loads
 dumper = pickle.dumps
+#loader = yaml.load
+#dumper = yaml.dump
+#loader = json.loads
+#dumper = json.dumps
 
 
 def renderTree( data, imports = None, strict_undefined = True ):
@@ -71,23 +75,26 @@ def renderTree( data, imports = None, strict_undefined = True ):
      These steps repeated until a the data string is unchanged by a render.
      '''
 
-  input_text = ''
   # dump the tree to a string
-  output_text = dumper(data)
-  # keep rendering until the string representation of the tree does not change
-  while input_text != output_text:
-    input_text = output_text
+  serialized_data = dumper(data)
+  # keep rendering until the data string repeats itself.
+  hashes = dict()
+  hasher = hashlib.sha1
+  hash = hasher(serialized_data).hexdigest()
+  while hashes.get( hash, 0 ) < 2:
     # run the string through a Mako template using the tree for context
-    logging.debug("RENDERING")
-    logging.debug( input_text )
-    t = Template(input_text, imports=imports, ignore_expression_errors=True)
-    output_text = t.render( **toAttrDict(data) )
-    data = loader( output_text )
+    logging.debug("RENDERING (%s)" % hash)
+    logging.debug( serialized_data )
+    t = Template(serialized_data, imports=imports, ignore_expression_errors=True)
+    serialized_data = t.render( **toAttrDict(data) )
+    data = loader( serialized_data )
     # turn everything we can into a number and update output_text
     data = toNums(data)
-    output_text = dumper(data)
-    logging.debug("RENDERED")
-    logging.debug( output_text )
+    serialized_data = dumper(data)
+    hash = hasher(serialized_data).hexdigest()
+    hashes[hash] = hashes.get(hash,0) + 1
+    logging.debug("RENDERED (%s)" % hash)
+    logging.debug( serialized_data )
 
 
   # run make one more time with strict errors so that we will get
