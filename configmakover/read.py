@@ -31,6 +31,7 @@ def readConfig( text = None, parser = yaml.load
 
   # if render is set, we want to render the data tree
   if render:
-    data = scopedRenderTree(data, imports=imports)
+    ddata = scopedRenderTree( {'top' : data}, imports=imports)
+    data  = ddata['top']
   
   return data

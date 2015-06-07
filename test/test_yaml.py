@@ -24,6 +24,11 @@ nest1 :
   var3 : ${var1 + 12}
   var4 : ${var3 + 12}
   var5 : ${nest1['var3'] + 12}
+  nest2 :
+    var1 : 111
+    var2 : 112
+    var3 : ${var1}
+    var4 : ${top.var1}
 '''
 
 
@@ -32,9 +37,3 @@ print yaml.dump(data, default_flow_style=False)
 
 
 
-#data = { 'one' : { 'one' : { 'one' : 111, 'two' : 112 }, 'two' : 12 }, 'two' : 2, 'three' : [ 1, 2, {'one' : 333} ] }
-
-#data = toAttrDict(data)
-
-#print data.one.one.one
-#print data.three[2].one
