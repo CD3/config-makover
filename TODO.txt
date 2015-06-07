@@ -1,2 +1,2 @@
 - add validation framework
-- add 'top' namespace
+- detect circular dependencies
