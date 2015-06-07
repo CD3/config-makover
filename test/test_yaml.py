@@ -106,7 +106,7 @@ def test_physicsy():
       N   : ${int( (max - min)/res )}
   time:
     start : 0
-    stop : 10
+    stop : ${math.pow(10,2)}
     dt : 0.001
   '''
 
@@ -120,6 +120,6 @@ def test_physicsy():
   assert data.grid.y.max == 20
   assert data.grid.y.N   == 20000
   assert data.time.start == 0
-  assert data.time.stop  == 10
+  assert data.time.stop  == 100
   assert data.time.dt    == 0.001
 
