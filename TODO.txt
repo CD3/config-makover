@@ -1,2 +1,1 @@
 - add validation framework
-- detect circular dependencies

@@ -1,6 +1,7 @@
 
 from mako.template import Template
-import pickle, yaml, json
+import pickle
+import yaml
 import hashlib
 import dpath.util
 import logging
@@ -50,10 +51,6 @@ def toAttrDict( d ):
 
 loader = pickle.loads
 dumper = pickle.dumps
-#loader = yaml.load
-#dumper = yaml.dump
-#loader = json.loads
-#dumper = json.dumps
 
 
 def renderTree( data, imports = None, strict_undefined = True ):

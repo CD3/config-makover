@@ -96,6 +96,16 @@ parameter values. What if you want the x and y resolution to be the same, but yo
       stop : 10
       dt : 0.001
 
+Don't like YAML? No problem, just provide with a parser that reads your preferred format from a string and returns a data tree. So, to read JSON,
+
+    from configmakover.read import *
+    import json
+
+    with open('myConfig.json', 'r') as f:
+      text = f.read()
+
+    config = readConfig( text, parser=json.loads )
+
 Because Mako expressions are just Python expressions, you can pretty much do anything you want! It's time to give you configuration a makeover, write
 it once, configure forever (ugh, how cheesy can we get?)
 

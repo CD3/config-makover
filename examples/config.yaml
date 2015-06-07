@@ -1,0 +1,12 @@
+nest1:
+  nest2: {var1: 111, var2: 112, var3: 111, var4: 1, var5: 11}
+  var1: 11
+  var2: 35
+  var3: 23
+  var4: 35
+  var5: 35
+var1: 1
+var2: some string
+var3: 3
+var4: 8.14159265359
+var5: 10.1415926536
