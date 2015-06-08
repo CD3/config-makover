@@ -3,11 +3,30 @@ Mako-powered Configuration Files
 
 Configure your application with the power of Mako templates.
 
+Features
+--------
+
+config-makover is a module that allows you to write configuration files containing Mako template expressions.
+These can be used to do simple variable substitution (have one parameter in your configuration file be automaticall
+set to the value of another parameter) or more complicated computations (have the value of a parameter
+be automatically calculated from another parameter). It has the following features.
+
+  - Recursive parameter substitution. Configuration data is stored in a tree an parameter substitution occurs
+    within branches of the tree.
+  - Parameter calculation. Configuration data can be automatically calculated using Python expressions.
+  - It is file format agnostic. config-makover does not parse configuration files. It relies on a "loader".
+    If you have a function that can take a string contining the text of your configuration file and return
+    a configuration tree (nested dict and list) then you can use config-makeover.
+  - Filters. You can provide a list of callables that will be applied to every element in the configuration
+    tree before, during, or after the rendering process. Need to make sure all parameters that can be cast
+    to a number are numbers? Just write a filter (actually, this is done by default). Want to have any values
+    containing a list of numbers ( '1,2,3,4' ) to expand into an actual list? Just write a filter.
+
 Example
 -------
 YAML is a great language for writing configuration files. It is simple to write, configuration options
 can be stored in a logical hierarchy, and it is easy to get into your Python code. config-makover simply
-adds the power of Mako Expressions to you YAML file so you can do something like:
+adds the power of Mako Expressions to your YAML file so you can do something like:
 
     #! /usr/bin/python
 
@@ -106,7 +125,7 @@ Don't like YAML? No problem, just provide with a parser that reads your preferre
 
     config = readConfig( text, parser=json.loads )
 
-Don't want to learn YAML or JSON? Just use INI
+Don't want to learn YAML or JSON? Just use INI,
 
     from configmakover.read import *
     from configmakover.parsers import ini
@@ -121,11 +140,70 @@ Don't want to learn YAML or JSON? Just use INI
 Because Mako expressions are just Python expressions, you can pretty much do anything you want! It's time to give you configuration a makeover, write
 it once, configure forever (ugh, how cheesy can we get?)
 
+What it does
+------------
+
+The ``readConfig`` function reads a configuration string and returns a configuration tree. It does several things in between.
+
+1. The configuration string is passed through Mako as a template. So, you configuration file can be a full blown Mako template as long as this template renders to a string than can be parsed by the loader/de-serializer.
+
+2. The configuration string is parsed by a loader/de-serializer such as YAML.load or JSON.loads.
+
+3. A set of filter functions are called on every element in the configuration tree.
+
+4. The configuration tree is rendered (See details below).
+
+5. A set of filter functions are called on every element in the rendered configuration tree.
+
+6. The data tree is returned.
+
+The rendering step is where most of the work (and power) happens. The rendering
+process will replace any references to other parameters in the configuration
+tree with their values. This is similar to the parameter interpolation in
+ConfigParser, but it is much more powerful. First, the configuration data is
+stored in a tree. Second, Mako is used to do the rendering, so all variable
+substitution are actually Mako expressions, which means they can contain arbitrary
+Python code.
+
+The rendering process consists of several step. The rendering function is called recursively on the branches
+of the configuration tree so that it essentially 'walks' down the tree and begins rendering the bottom branches.
+This is useful because it allows for 'local' variable substitution. Parameter references will be replaced
+with values from the same branch if possible. If the parameter name that is referenced does not exist in
+the same branch, then a parameter in the parent branch will be used if it exists. If no parameter exists,
+the next highest branch is used, and so on until the top of the tree is reached.
+
+When a specific branch of the configuration tree is being rendered, the following things happen:
+
+1. The "configuration tree" is serialized into a "configuration string". This is done using pickle.
+
+2. A hash of the configuration string is stored.
+
+3. The configuration string is treated as a Mako template and is rendered using the configuration tree
+   for the context.
+
+4. The configuration tree is replaced with the tree created from de-serializing the rendered configuration string.
+
+5. A hash of the rendered configuration string is computed and stored.
+
+6. If the new hash matches any other hashes that have been stored, the render function is terminated. Otherwise,
+   the process is repeated with the updated configuration tree.
+
+In addition to these steps, a set of user defined functions are used to "filter" the configuration tree elements
+after each Mako render.  This allows the caller to process the configuration data in between renderings. For
+example, you may need to make sure that all elements that can be converted to numbers are converted to numbers
+before the next render occurs so that their values can be used calculations performed by other expressions.
+
 Installation
 ------------
 Just copy the configmakover directory to a directory in your PYTHONPATH
-(It's still early, I have not put very much polish on it yet).  However,
+(It's still early, I have developed an installer).  However,
 configmakover currently uses a patched version of Mako that allows for
 missing parameters to be ignored (actually, it allows any expression that
 contains an error to be ignored). Currently this patched version is available at
 https://bitbucket.org/CD3/mako.
+
+The makover.py script
+---------------------
+
+If you don't have a Python interface to your application, you can still use config-makover. A script named
+``makover.py`` is included that can read a templated configuration file and write a rendered configuration file.
