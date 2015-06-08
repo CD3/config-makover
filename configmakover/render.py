@@ -46,7 +46,11 @@ def renderTree( data, imports = None, strict_undefined = True, filter = toNum ):
     logging.debug( serialized_data )
     logging.debug( data )
     t = Template(serialized_data, imports=imports, ignore_expression_errors=True)
-    serialized_data = t.render( **toAttrDict(data) )
+    if isinstance(data,dict):
+      data = toAttrDict(data)
+    else:
+      data = {'this' : data }
+    serialized_data = t.render( **data )
     data = loader( serialized_data )
     # turn everything we can into a number and update output_text
     data = applyFilter(data, filter)
