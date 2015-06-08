@@ -12,11 +12,11 @@ def applyFilter( data, filter ):
   '''Applys a given function to all elements in a data tree. The function called on each element is responsible for
      handling any errors.'''
   nargs = len(inspect.getargspec( filter ).args)
-  for item in dpath.util.search( data, "**", yielded=True ):
+  for item in dpath.util.search( data, "**", yielded=True, separator='.' ):
     if nargs == 1:
-      dpath.util.set( data, item[0], filter(item[1]) )
+      dpath.util.set( data, item[0], filter(item[1]), separator='.' )
     if nargs == 2:
-      dpath.util.set( data, item[0], filter(item[1], item[0]) )
+      dpath.util.set( data, item[0], filter(item[1], item[0]), separator='.' )
   return data
 
 
