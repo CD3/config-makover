@@ -36,7 +36,7 @@ var5 = ${nest1.var3 + 12}
     except:
       return x
 
-  data = readConfig( data, parser = ini.load, filters = num )
+  data = readConfig( data, parser = ini.load, render_filters = num )
 
   assert data['main']['var1'] == 1
   assert data['main']['var2'] == 'some string'

@@ -4,7 +4,10 @@ import sys, os
 moddir = os.path.join( os.path.dirname( __file__ ), '..' )
 sys.path = [moddir] + sys.path
 
+import pytest
+
 from configmakover.read import *
+from configmakover.filters import *
 
 import utils
 #logging.basicConfig( level=logging.DEBUG )
@@ -33,7 +36,7 @@ def test_level_filter():
 
     return val
 
-  data = readConfig( text, filters=filter_on_layer )
+  data = readConfig( text, render_filters=filter_on_layer )
   logging.debug( "RESULT" )
   logging.debug( data )
 
@@ -88,7 +91,7 @@ def test_multiple_filters():
     return val
 
 
-  data = readConfig( text, filters=[set_type,plus_one] )
+  data = readConfig( text, render_filters=[set_type,plus_one] )
   logging.debug( "RESULT" )
   logging.debug( data )
 
@@ -102,7 +105,7 @@ def test_list_generation():
       var : 7,8,9
   '''
 
-  data = readConfig( text, filters=expand_list)
+  data = readConfig( text, render_filters=expand_list)
 
   logging.debug( "RESULT" )
   logging.debug( data )
@@ -125,7 +128,7 @@ def test_none_filters():
   '''
 
 
-  data = readConfig( text, filters=None )
+  data = readConfig( text, render_filters=None )
 
   logging.debug( "RESULT" )
   logging.debug( data )
@@ -133,4 +136,59 @@ def test_none_filters():
   assert data['var'] == 1
   assert data['nest']['var'] == 2
   assert data['nest']['nest']['var'] == 3
+
+def test_pre_post_filters():
+  text = '''
+  var1 : '1'
+  var2 : '${var1 + 1}'
+  nest :
+    var1 : '2'
+    var2 : '${var1 + 1}'
+    nest :
+      var1 : '3'
+      var2 : '${var1 + 1}'
+  '''
+
+
+  def num(val):
+    if isContainer(val):
+      return val
+
+    try:
+      return float(val)
+    except:
+      return val
+
+
+  with pytest.raises(NameError):
+    data = readConfig( text , render_filters=None)
+
+  data = readConfig( text , pre_filters=num, render_filters=None)
+
+  logging.debug( "RESULT" )
+  logging.debug( data )
+
+  assert data['var1'] == 1
+  assert data['var2'] == '2.0'
+  assert data['nest']['var1'] == 2
+  assert data['nest']['var2'] == '3.0'
+  assert data['nest']['nest']['var1'] == 3
+  assert data['nest']['nest']['var2'] == '4.0'
+
+
+
+  data = readConfig( text , pre_filters=num, post_filters=num, render_filters=None)
+
+  logging.debug( "RESULT" )
+  logging.debug( data )
+
+  assert data['var1'] == 1
+  assert data['var2'] == 2
+  assert data['nest']['var1'] == 2
+  assert data['nest']['var2'] == 3
+  assert data['nest']['nest']['var1'] == 3
+  assert data['nest']['nest']['var2'] == 4
+
+
+
 

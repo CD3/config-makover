@@ -4,13 +4,34 @@ import mako.template
 import re
 
 def readConfig( text = None, parser = yaml.load
-                           , render = True
                            , preprocess = True
+                           , render = True
                            , pre_filters = None
-                           , filters = toNum
+                           , render_filters = toNum
                            , post_filters = None
                            , filename = None):
-  '''Read string (or file) containing configuration data into a data tree.'''
+  '''
+  Read string (or file) containing configuration data into a data tree.
+
+  :param text: String containing configuration file text
+  
+  :param parser: A callable that can parse the configuration text into a configuration tree. For example,
+  ``parser=yaml.load`` or ``parser=json.loads``.
+
+  :param preprocess: Preprocess the configuration text as a Mako template before loading.
+
+  :param render: Attempt to render the configuration tree.
+
+  :param pre_filters: A set of functions to call on each entry of the data tree before rendering begins.
+
+  :param render_filters: A set of functions to call on each entry of the data
+    tree as it is being renderd. These functions will be applied after each call to Template.render().
+
+  :param post_filters: A set of functions to call on each entry of the data tree after rendering is complete.
+
+  :param filename: Configuration filename. If given, ``text`` parameter is ignored
+
+  '''
 
   # if a filename is given, read it into the text string
   if filename:
@@ -31,9 +52,17 @@ def readConfig( text = None, parser = yaml.load
   # read the data from the string into a tree
   data = parser( text )
 
+  # if pre filters where given, apply them
+  if not pre_filters is None:
+    data = applyFilters(data, pre_filters)
+
   # if render is set, we want to render the data tree
   if render:
-    ddata = scopedRenderTree( {'top' : data}, imports=imports, filters=filters )
-    data  = ddata['top']
+    data = scopedRenderTree( {'top' : data}, imports=imports, filters=render_filters )
+    data  = data['top']
+
+  # if post filters where given, apply them
+  if not post_filters is None:
+    data = applyFilters(data, post_filters)
   
   return data
