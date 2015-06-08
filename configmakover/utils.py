@@ -7,21 +7,25 @@ def iterator( obj ):
     return xrange( len( obj ) )
   return None
 
-def toNums( data ):
-  '''Casts all data in a tree to numbers if possible'''
+def applyFilter( data, filter ):
+  '''Applys a given function to all elements in a data tree. The function called on each element is responsible for
+     handling any errors.'''
   for item in dpath.util.search( data, "**", yielded=True ):
-    try:
-      t = int
-      if str(item[1]).find('.') > -1:
-        t = float
-
-      # TODO: add complex support
-        
-      dpath.util.set( data, item[0], t(str(item[1])) )
-    except ValueError:
-      pass
-
+      dpath.util.set( data, item[0], filter(item[1]) )
   return data
+
+
+def toNum( val ):
+  '''Casts all data in a tree to numbers if possible'''
+  try:
+    t = int
+    if str(val).find('.') > -1:
+      t = float
+    # TODO: add complex support
+      
+    return t(str(val))
+  except ValueError:
+    return val
 
 def toAttrDict( d ):
   '''Replaces all intances of dict() with AttrDict() in a data tree.'''

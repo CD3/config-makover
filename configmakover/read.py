@@ -1,10 +1,12 @@
 from .render import *
 import mako.template
 import re
+from .utils import toNum
 
 def readConfig( text = None, parser = yaml.load
                            , render = True
                            , preprocess = True
+                           , filter = toNum
                            , filename = None):
   '''Read string (or file) containing configuration data into a data tree.'''
 
@@ -29,7 +31,7 @@ def readConfig( text = None, parser = yaml.load
 
   # if render is set, we want to render the data tree
   if render:
-    ddata = scopedRenderTree( {'top' : data}, imports=imports)
+    ddata = scopedRenderTree( {'top' : data}, imports=imports, filter=filter )
     data  = ddata['top']
   
   return data

@@ -29,7 +29,13 @@ var4 = ${var3 + 12}
 var5 = ${nest1.var3 + 12}
 '''
 
-  data = readConfig( data, parser = ini.load )
+  def num(x):
+    try:
+      return float(x)
+    except:
+      return x
+
+  data = readConfig( data, parser = ini.load, filter = num )
 
   assert data['main']['var1'] == 1
   assert data['main']['var2'] == 'some string'
