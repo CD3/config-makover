@@ -29,7 +29,7 @@ var4 = ${var3 + 12}
 var5 = ${nest1.var3 + 12}
 '''
 
-  def num(x):
+  def num(x,y):
     try:
       return float(x)
     except:
