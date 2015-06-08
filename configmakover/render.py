@@ -39,7 +39,7 @@ def renderTree( data, imports = None, strict_undefined = True, filters = toNum )
   hashes = dict()
   hasher = hashlib.sha1
   hash = hasher(serialized_data).hexdigest()
-  # make sure the numbers are numbers
+  # apply the filters
   data = applyFilters(data, filters)
   while hashes.get( hash, 0 ) < 2:
     # run the string through a Mako template using the tree for context
@@ -53,7 +53,7 @@ def renderTree( data, imports = None, strict_undefined = True, filters = toNum )
       data = {'this' : data }
     serialized_data = t.render( **data )
     data = loader( serialized_data )
-    # turn everything we can into a number and update output_text
+    # apply filters and update data string
     data = applyFilters(data, filters)
     serialized_data = dumper(data)
     hash = hasher(serialized_data).hexdigest()
@@ -66,7 +66,7 @@ def renderTree( data, imports = None, strict_undefined = True, filters = toNum )
   # an exception if there are still any expressions left
   if strict_undefined:
     t = Template(input_text, strict_undefined=True, ignore_expression_errors=False)
-    output_text = t.render( )
+    t.render( )
 
   return data
 
@@ -107,19 +107,28 @@ def scopedRenderTree( data, imports = None, strict_undefined = True, filters = t
     # return the rendered data.
     return data
 
-  input_text = ''
-  output_text = dumper(data)
-  # run data through rendering until it doesn't change anymore
-  while input_text != output_text:
-    input_text = output_text
+  # render the data until it does not change anymore.
+  # we want to catch circular dependencies, so we'll keep a record of all
+  # string representations of the data.
+
+  # dump the tree to a string
+  serialized_data = dumper(data)
+  # setup data string record. we will just store the hashes.
+  hashes = dict()
+  hasher = hashlib.sha1
+  hash = hasher(serialized_data).hexdigest()
+  # keep rendering until the data string repeats itself.
+  while hashes.get( hash, 0 ) < 2:
     data = singlePass(data)
-    output_text = dumper(data)
+    serialized_data = dumper(data)
+    hash = hasher(serialized_data).hexdigest()
+    hashes[hash] = hashes.get(hash,0) + 1
 
   if strict_undefined:
     # run make one more time with strict errors so that we will get
     # an exception if there are still any expressions left
-    t = Template(input_text, strict_undefined=True, ignore_expression_errors=False)
-    output_text = t.render( )
+    t = Template(serialized_data, strict_undefined=True, ignore_expression_errors=False)
+    t.render( )
 
   return data
 
