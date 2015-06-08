@@ -1,1 +1,2 @@
 - add validation framework
+- catch (and report) missing module error in expression

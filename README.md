@@ -106,6 +106,18 @@ Don't like YAML? No problem, just provide with a parser that reads your preferre
 
     config = readConfig( text, parser=json.loads )
 
+Don't want to learn YAML or JSON? Just use INI
+
+    from configmakover.read import *
+    from configmakover.parsers import ini
+    import json
+
+    with open('myConfig.ini', 'r') as f:
+      text = f.read()
+
+    config = readConfig( text, parser=ini.load )
+
+
 Because Mako expressions are just Python expressions, you can pretty much do anything you want! It's time to give you configuration a makeover, write
 it once, configure forever (ugh, how cheesy can we get?)
 

@@ -1,56 +1,16 @@
-
+from .utils import *
 from mako.template import Template
 import pickle
 import yaml
 import hashlib
-import dpath.util
 import logging
-
-def iterator( obj ):
-  if isinstance( obj, dict ):
-    return obj
-  if isinstance( obj, list ):
-    return xrange( len( obj ) )
-  return None
-
-class AttrDict(dict):
-  '''A dict that allows attribute style access'''
-  __getattr__ = dict.__getitem__
-  __setattr__ = dict.__setitem__
-
-def toNums( data ):
-  '''Casts all data in a tree to numbers if possible'''
-  for item in dpath.util.search( data, "**", yielded=True ):
-    try:
-      t = int
-      if str(item[1]).find('.') > -1:
-        t = float
-
-      # TODO: add complex support
-        
-      dpath.util.set( data, item[0], t(str(item[1])) )
-    except ValueError:
-      pass
-
-  return data
-
-def toAttrDict( d ):
-  '''Replaces all intances of dict() with AttrDict() in a data tree.'''
-  it = iterator( d )
-  if it:
-    for i in it:
-      d[i] = toAttrDict( d[i] )
-
-  if isinstance( d, dict ):
-    return AttrDict( d )
-  else:
-    return d
-
 
 
 
 loader = pickle.loads
 dumper = pickle.dumps
+#loader = yaml.load
+#dumper = yaml.dump
 
 
 def renderTree( data, imports = None, strict_undefined = True ):
@@ -78,10 +38,13 @@ def renderTree( data, imports = None, strict_undefined = True ):
   hashes = dict()
   hasher = hashlib.sha1
   hash = hasher(serialized_data).hexdigest()
+  # make sure the numbers are numbers
+  data = toNums(data)
   while hashes.get( hash, 0 ) < 2:
     # run the string through a Mako template using the tree for context
     logging.debug("RENDERING (%s)" % hash)
     logging.debug( serialized_data )
+    logging.debug( data )
     t = Template(serialized_data, imports=imports, ignore_expression_errors=True)
     serialized_data = t.render( **toAttrDict(data) )
     data = loader( serialized_data )
