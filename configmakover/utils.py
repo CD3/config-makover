@@ -8,15 +8,23 @@ def iterator( obj ):
     return xrange( len( obj ) )
   return None
 
-def applyFilter( data, filter ):
-  '''Applys a given function to all elements in a data tree. The function called on each element is responsible for
+def applyFilters( data, filters ):
+  '''Applys a set of given functions to all elements in a data tree. The function called on each element is responsible for
      handling any errors.'''
-  nargs = len(inspect.getargspec( filter ).args)
-  for item in dpath.util.search( data, "**", yielded=True, separator='.' ):
-    if nargs == 1:
-      dpath.util.set( data, item[0], filter(item[1]), separator='.' )
-    if nargs == 2:
-      dpath.util.set( data, item[0], filter(item[1], item[0]), separator='.' )
+  it = iterator(filters)
+  if not it:
+    filters = [filters]
+
+  it = iterator(filters)
+  for i in it:
+    filter = filters[i]
+    nargs = len(inspect.getargspec( filter ).args)
+    for item in dpath.util.search( data, "**", yielded=True, separator='.' ):
+      if nargs == 1:
+        dpath.util.set( data, item[0], filter(item[1]), separator='.' )
+      if nargs == 2:
+        dpath.util.set( data, item[0], filter(item[1], item[0]), separator='.' )
+
   return data
 
 

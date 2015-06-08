@@ -13,7 +13,7 @@ dumper = pickle.dumps
 #dumper = yaml.dump
 
 
-def renderTree( data, imports = None, strict_undefined = True, filter = toNum ):
+def renderTree( data, imports = None, strict_undefined = True, filters = toNum ):
   '''Renders a nested data structure with itself.
 
      Given a data tree that contains some parameters containing references to
@@ -39,7 +39,7 @@ def renderTree( data, imports = None, strict_undefined = True, filter = toNum ):
   hasher = hashlib.sha1
   hash = hasher(serialized_data).hexdigest()
   # make sure the numbers are numbers
-  data = applyFilter(data, filter)
+  data = applyFilters(data, filters)
   while hashes.get( hash, 0 ) < 2:
     # run the string through a Mako template using the tree for context
     logging.debug("RENDERING (%s)" % hash)
@@ -53,7 +53,7 @@ def renderTree( data, imports = None, strict_undefined = True, filter = toNum ):
     serialized_data = t.render( **data )
     data = loader( serialized_data )
     # turn everything we can into a number and update output_text
-    data = applyFilter(data, filter)
+    data = applyFilters(data, filters)
     serialized_data = dumper(data)
     hash = hasher(serialized_data).hexdigest()
     hashes[hash] = hashes.get(hash,0) + 1
@@ -69,7 +69,7 @@ def renderTree( data, imports = None, strict_undefined = True, filter = toNum ):
 
   return data
 
-def scopedRenderTree( data, imports = None, strict_undefined = True, filter = toNum ):
+def scopedRenderTree( data, imports = None, strict_undefined = True, filters = toNum ):
   '''Render a data tree by applying the renderTree function to each branch, starting from the bottom.
 
      This function also acts recursivly. It 'walks' down the data tree until
@@ -101,7 +101,7 @@ def scopedRenderTree( data, imports = None, strict_undefined = True, filter = to
 
     # now re can render the data. by calling this after the loop
     # above, we will render the bottom branches first
-    data = renderTree(data, imports=imports, strict_undefined=False, filter=filter)
+    data = renderTree(data, imports=imports, strict_undefined=False, filters=filters)
 
     # return the rendered data.
     return data

@@ -2,7 +2,6 @@ import math, os, sys
 moddir = os.path.join( os.path.dirname( __file__ ), '..' )
 sys.path = [moddir] + sys.path
 from configmakover.read import *
-from forbiddenfruit import curse
 
 
 def test_construction():

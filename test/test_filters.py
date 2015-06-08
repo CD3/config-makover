@@ -33,7 +33,8 @@ def test_level_filter():
 
     return val
 
-  data = readConfig( text, filter=filter_on_layer )
+  data = readConfig( text, filters=filter_on_layer )
+  print data
 
   assert isinstance( data['var'], str)
   assert isinstance( data['nest']['var'], float)
@@ -41,6 +42,85 @@ def test_level_filter():
   assert isinstance( data['nest']['nest']['nest']['var'], float)
   assert isinstance( data['nest']['nest']['nest']['nest']['var'], str)
   assert isinstance( data['nest']['nest']['nest']['nest']['nest']['var'], float)
+
+
+def test_multiple_filters():
+  text = '''
+  num : 1
+  nest :
+    str : 2
+    nest :
+      num: 3
+      nest :
+        str: 4
+        nest :
+          num: 5
+          nest :
+            str: 6
+  '''
+
+  def set_type( val, key ):
+    if isinstance( val, dict ):
+      return val
+    
+    if isinstance( val, list ):
+      return val
+
+    if isinstance(val,unicode):
+      val = str(val)
+
+    if key == 'num' and isinstance(val,str):
+      return float(val)
+    
+    if key == 'str':
+      return str(val)
+
+    return val
+
+  def plus_one( val ):
+    try:
+      if val < 10:
+        return val + 1
+    except:
+      return val
+    
+    return val
+
+
+  data = readConfig( text, filters=[set_type,plus_one] )
+  print data
+
+
+def test_list_generation():
+  text = '''
+  var : 1,2,3
+  nest :
+    var : 4,5,6
+    nest :
+      var : 7,8,9
+  '''
+
+  def expand_range( val ):
+    if isinstance(val,dict) or isinstance(val,list):
+      return val
+
+    try:
+      if isinstance(val, unicode):
+        val = str(val)
+
+      if isinstance(val, str):
+        if val.find(',') > -1:
+          val = val.strip().split(',')
+      else:
+        val = float(val)
+
+    except:
+      return val
+    
+    return val
+
+
+  data = readConfig( text, filters=expand_range )
 
   print data
 

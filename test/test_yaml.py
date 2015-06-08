@@ -7,7 +7,7 @@ sys.path = [moddir] + sys.path
 from configmakover.read import *
 
 import utils
-#logging.basicConfig( level=logging.DEBUG )
+logging.basicConfig( level=logging.DEBUG )
 
 def test_simple():
   data = '''
@@ -25,6 +25,10 @@ def test_simple():
     var3 : ${var1 + 12}
     var4 : ${var3 + 12}
     var5 : ${nest1.var3 + 12}
+    list1 :
+      - 01
+      - ${this[0]}
+      - 03
     nest2 :
       var1 : 111
       var2 : 112
@@ -35,6 +39,8 @@ def test_simple():
 
 
   data = readConfig( data )
+  logging.debug( "RESULT")
+  logging.debug( data )
 
   assert data['var1'] == 1
   assert data['var2'] == 'some string'
