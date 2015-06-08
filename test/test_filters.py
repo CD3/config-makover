@@ -34,7 +34,8 @@ def test_level_filter():
     return val
 
   data = readConfig( text, filters=filter_on_layer )
-  print data
+  logging.debug( "RESULT" )
+  logging.debug( data )
 
   assert isinstance( data['var'], str)
   assert isinstance( data['nest']['var'], float)
@@ -88,7 +89,8 @@ def test_multiple_filters():
 
 
   data = readConfig( text, filters=[set_type,plus_one] )
-  print data
+  logging.debug( "RESULT" )
+  logging.debug( data )
 
 
 def test_list_generation():
@@ -100,27 +102,35 @@ def test_list_generation():
       var : 7,8,9
   '''
 
-  def expand_range( val ):
-    if isinstance(val,dict) or isinstance(val,list):
-      return val
+  data = readConfig( text, filters=expand_list)
 
-    try:
-      if isinstance(val, unicode):
-        val = str(val)
-
-      if isinstance(val, str):
-        if val.find(',') > -1:
-          val = val.strip().split(',')
-      else:
-        val = float(val)
-
-    except:
-      return val
-    
-    return val
+  logging.debug( "RESULT" )
+  logging.debug( data )
 
 
-  data = readConfig( text, filters=expand_range )
+  assert isinstance( data, dict)
+  assert isinstance( data['var'], list)
+  assert isinstance( data['nest'], dict)
+  assert isinstance( data['nest']['var'], list)
+  assert isinstance( data['nest']['nest'], dict)
+  assert isinstance( data['nest']['nest']['var'], list)
 
-  print data
+def test_none_filters():
+  text = '''
+  var : 1
+  nest :
+    var : 2
+    nest :
+      var : 3
+  '''
+
+
+  data = readConfig( text, filters=None )
+
+  logging.debug( "RESULT" )
+  logging.debug( data )
+
+  assert data['var'] == 1
+  assert data['nest']['var'] == 2
+  assert data['nest']['nest']['var'] == 3
 

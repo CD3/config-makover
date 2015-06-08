@@ -1,12 +1,14 @@
 from .render import *
+from .filters import toNum
 import mako.template
 import re
-from .utils import toNum
 
 def readConfig( text = None, parser = yaml.load
                            , render = True
                            , preprocess = True
+                           , pre_filters = None
                            , filters = toNum
+                           , post_filters = None
                            , filename = None):
   '''Read string (or file) containing configuration data into a data tree.'''
 
