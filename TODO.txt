@@ -1,4 +1,2 @@
 - add validation framework
 - catch (and report) missing module error in expression
-- support two different filter hooks. one after each render, and one after all
-  rendering. maybe pre_filters, render_filters, and post_filters
