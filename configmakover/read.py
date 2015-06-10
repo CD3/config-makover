@@ -9,6 +9,7 @@ def readConfig( text = None, parser = yaml.load
                            , pre_filters = None
                            , render_filters = None
                            , post_filters = None
+                           , ignore_expression_errors = False
                            , filename = None):
   '''
   Read string (or file) containing configuration data into a data tree.
@@ -58,7 +59,7 @@ def readConfig( text = None, parser = yaml.load
 
   # if render is set, we want to render the data tree
   if render:
-    data = scopedRenderTree( {'top' : data}, imports=imports, filters=render_filters )
+    data = scopedRenderTree( {'top' : data}, imports=imports, filters=render_filters, strict_undefined=not ignore_expression_errors )
     data  = data['top']
 
   # if post filters where given, apply them
