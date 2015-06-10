@@ -7,7 +7,7 @@ Features
 --------
 
 config-makover is a module that allows you to write configuration files containing Mako template expressions.
-These can be used to do simple variable substitution (have one parameter in your configuration file be automaticall
+These can be used to do simple variable substitution (have one parameter in your configuration file be automatically
 set to the value of another parameter) or more complicated computations (have the value of a parameter
 be automatically calculated from another parameter). It has the following features.
 
