@@ -38,7 +38,7 @@ def test_simple():
   '''
 
 
-  data = readConfig( data )
+  data = readConfig( data, render_filters=toNum )
   logging.debug( "RESULT")
   logging.debug( data )
 
@@ -101,7 +101,7 @@ def test_large():
   '''
 
 
-  data = readConfig( data )
+  data = readConfig( data, render_filters = toNum )
 
   assert data['var1'] == 1
   assert data['var2'] == 'some string'
@@ -141,7 +141,7 @@ def test_passthrough():
   '''
 
 
-  data = toAttrDict( readConfig( data ) )
+  data = toAttrDict( readConfig( data, render_filters=toNum ) )
 
   assert data.grid.x.min == 0
   assert data.grid.x.max == 10
@@ -178,7 +178,7 @@ def test_physicsy():
   '''
 
 
-  data = toAttrDict( readConfig( data ) )
+  data = toAttrDict( readConfig( data, render_filters=toNum ) )
 
   assert data.grid.x.min == 0
   assert data.grid.x.max == 10

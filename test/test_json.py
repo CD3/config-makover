@@ -38,7 +38,7 @@ def test_simple():
   }
   '''
 
-  data = readConfig( data, parser=json.loads )
+  data = readConfig( data, parser=json.loads, render_filters = toNum )
 
   assert data['var1'] == 1
   assert data['var2'] == 'some string'
