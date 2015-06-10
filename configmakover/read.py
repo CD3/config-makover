@@ -7,7 +7,7 @@ def readConfig( text = None, parser = yaml.load
                            , preprocess = True
                            , render = True
                            , pre_filters = None
-                           , render_filters = toNum
+                           , render_filters = None
                            , post_filters = None
                            , filename = None):
   '''
@@ -66,3 +66,6 @@ def readConfig( text = None, parser = yaml.load
     data = applyFilters(data, post_filters)
   
   return data
+
+
+readSchema = readConfig
