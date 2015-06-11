@@ -47,7 +47,7 @@ def renderTree( data, imports = None, strict_undefined = True, filters = toNum )
     logging.debug( serialized_data )
     logging.debug( data )
     t = Template(serialized_data, imports=imports, ignore_expression_errors=True)
-    if isinstance(data,dict):
+    if isinstance(data,Mapping):
       data = toAttrDict(data)
     else:
       data = {'this' : data }

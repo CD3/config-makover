@@ -12,7 +12,14 @@ def test_simple():
   var1 : 1
   var2 : 2
   nest1 :
-    var1 : "1"
+    var1 : "11"
+    nest2 :
+      var1 : 111
+      var2 : 112
+      nest3 :
+        - 1111
+        - 1112
+        - 1113
   '''
 
   schema_text = '''
@@ -24,6 +31,15 @@ def test_simple():
     type : dict
     schema :
       var1 : { type : string }
+      var1 : { test : { one.two : 'what?'} }
+      nest2 :
+        type : dict
+        schema :
+          var1 : { type : number }
+          var2 : { type : number }
+          nest3 :
+            type : list
+            test : 'huh?'
   '''
 
   data = readConfig( data_text, render_filters = None )

@@ -23,7 +23,7 @@ def applyFilters( data, filters ):
 
 
 def isContainer( val ):
-  return isinstance(val,dict) or isinstance(val,list)
+  return ( isinstance(val,Mapping) or isinstance(val,Sequence) ) and not isinstance(val,STR_TYPES)
 
 
 def toNum( val ):
