@@ -6,14 +6,12 @@ DESCRIPTION = "Config file reader and validator powered by Mako"
 LONG_DESCRIPTION = open('README.md').read()
 
 setup(name='config-makover',
-      version=0.0.0
+      version='0.0.0',
       description=DESCRIPTION,
       long_description=LONG_DESCRIPTION,
       author='C.D. Clark III',
-      author_email='clifton.clark@gmail.com',
-      url='https://github.com/CD3/config-makover'
+      url='https://github.com/CD3/config-makover',
       license="MIT License",
       platforms=["any"],
       packages=find_packages(),
-      test_suite="",
      )
