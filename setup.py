@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
 from setuptools import setup, find_packages
+import versioneer
 
 DESCRIPTION = "Config file reader and validator powered by Mako"
 LONG_DESCRIPTION = open('README.md').read()
 
 setup(name='config-makover',
-      version='0.0.0',
+      version=versioneer.get_version(),
+      cmdclass=versioneer.get_cmdclass(),
       description=DESCRIPTION,
       long_description=LONG_DESCRIPTION,
       author='C.D. Clark III',
