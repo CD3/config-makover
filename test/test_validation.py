@@ -26,12 +26,12 @@ def test_simple():
   var1 : { type : number }
   var2 :
     type : number
-    min : 1.5
+    #min : 1.5
   nest1 :
     type : dict
     schema :
       var1 : { type : string }
-      var1 : { test : { one.two : 'what?'} }
+      var2 : { test : { one.two : 'what?'} }
       nest2 :
         type : dict
         schema :
@@ -42,10 +42,8 @@ def test_simple():
             test : 'huh?'
   '''
 
-  data = readConfig( data_text, render_filters = None )
+  data   = readConfig(   data_text )
   schema = readSchema( schema_text )
 
   validate( data, schema )
 
-
-  pass
