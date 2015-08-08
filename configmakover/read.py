@@ -1,6 +1,6 @@
 from .render import *
 from .filters import toNum
-import mako.template
+from tempita import Template
 import re
 
 def readConfig( text = None, parser = yaml.load
@@ -19,7 +19,7 @@ def readConfig( text = None, parser = yaml.load
   :param parser: A callable that can parse the configuration text into a configuration tree. For example,
   ``parser=yaml.load`` or ``parser=json.loads``.
 
-  :param preprocess: Preprocess the configuration text as a Mako template before loading.
+  :param preprocess: Preprocess the configuration text as a template before loading.
 
   :param render: Attempt to render the configuration tree.
 
@@ -39,16 +39,20 @@ def readConfig( text = None, parser = yaml.load
     with open(filename) as f:
       text = f.read()
 
-  # if preprocess is set, we want to run the text through Mako
-  imports = None
+  # if preprocess is set, we want to run the text through the template engine
+  imports = []
   if preprocess:
-    t = Template(text, ignore_expression_errors=True)
-    # Mako blocks will be stripped out of the steam during this pass,
-    # so we need to get module imports and variable settings so we can pass them
-    # to the next calls
-    regex = re.compile("(import )|(^[a-zA-Z].*=)")
-    imports = [ line for line in t.code.split('\n') if not regex.search( line ) is None ][3:]
-    text = t.render()
+    # we need to extract imported modules so we can import them
+    # during the render process
+    r1 = re.compile("{{\s*py:\s*[^}]*}}", re.MULTILINE) # to extract the python blocks
+    r2 = re.compile("^\s*import\s*(.*)\s*$")     # to extract modules from import statements
+    for m1 in r1.finditer( text ):
+      for l in m1.group().splitlines():
+        for m2 in r2.finditer( l ):
+          imports.append( m2.group(1) )
+
+    t = Template( text )
+    text = t.substitute()
 
   # read the data from the string into a tree
   data = parser( text )
@@ -59,7 +63,7 @@ def readConfig( text = None, parser = yaml.load
 
   # if render is set, we want to render the data tree
   if render:
-    data = scopedRenderTree( {'top' : data}, imports=imports, filters=render_filters, strict_undefined=not ignore_expression_errors )
+    data = scopedRenderTree( {'top' : data}, imports=imports, filters=render_filters, strict=not ignore_expression_errors )
     data  = data['top']
 
   # if post filters where given, apply them

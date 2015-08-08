@@ -140,13 +140,13 @@ def test_none_filters():
 def test_pre_post_filters():
   text = '''
   var1 : '1'
-  var2 : '${var1 + 1}'
+  var2 : '{{var1 + 1}}'
   nest :
     var1 : '2'
-    var2 : '${var1 + 1}'
+    var2 : '{{var1 + 1}}'
     nest :
       var1 : '3'
-      var2 : '${var1 + 1}'
+      var2 : '{{var1 + 1}}'
   '''
 
 
@@ -160,7 +160,7 @@ def test_pre_post_filters():
       return val
 
 
-  with pytest.raises(NameError):
+  with pytest.raises(RuntimeError):
     data = readConfig( text , render_filters=None)
 
   data = readConfig( text , pre_filters=num, render_filters=None)

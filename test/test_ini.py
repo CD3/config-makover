@@ -13,21 +13,21 @@ import utils
 
 def test_simple():
   data = '''
-<%!
-import math
-%>
+{{py:
+import math, numpy
+}}
 [main]
 var1 = 1
 var2 = some string
 var3 = 3
-var4 = ${var3 + math.pi + 2}
-var5 = ${var4 + 2.0}
+var4 = {{var3 + math.pi + 2}}
+var5 = {{var4 + 2.0}}
 [nest1]
 var1 = 11
-var2 = ${var3 + 12}
-var3 = ${var1 + 12}
-var4 = ${var3 + 12}
-var5 = ${nest1.var3 + 12}
+var2 = {{var3 + 12}}
+var3 = {{var1 + 12}}
+var4 = {{var3 + 12}}
+var5 = {{nest1.var3 + 12}}
 '''
 
   def num(x,y):
