@@ -39,7 +39,7 @@ def CheckForExpressions(data):
 
 ExpressionErrorMsg = "One or more expressions where not replaced. The first one was '%s', but there may be others."
 
-def renderTree( data, imports = None, filters = toNum, strict = False ):
+def renderTree( data, context = {}, imports = None, filters = toNum, strict = False ):
   '''Renders a nested data structure with itself.
 
      Given a data tree that contains some parameters containing references to
@@ -86,7 +86,7 @@ def renderTree( data, imports = None, filters = toNum, strict = False ):
       data = dict2bunch(data)
     else:
       data = {'this' : data }
-    serialized_data = t.substitute( **data )
+    serialized_data = t.substitute( dict2bunch( dict(context,**data) ) )
     data = loader( serialized_data )
     # apply filters and update data string
     data = applyFilters(data, filters)
@@ -113,29 +113,27 @@ def scopedRenderTree( data, imports = None, filters = toNum, strict = True ):
      if possible. If no such parameter exists, then the first branch containg the parmeter name
      will be used.
   '''
-  data = {'top' : data}
-
-  def singlePass( data ):
+  def singlePass( d ):
     '''A single pass through the entire tree'''
     # walk down tree first
     # first, check if data is iterable.
-    it = iterator( data )
+    it = iterator( d )
     if it:
       # if so, loop through all items
       for i in it:
         # an item is iterable, call ourself...
-        if iterator( data[i] ):
-          data[i] = singlePass( data[i] )
+        if iterator( d[i] ):
+          d[i] = singlePass( d[i] )
     else:
       # if not, return immediatly
-      return data
+      return d
 
     # now re can render the data. by calling this after the loop
     # above, we will render the bottom branches first
-    data = renderTree(data, imports=imports, strict=False, filters=filters)
+    d = renderTree(d, context=dict2bunch({'top':data}), imports=imports, strict=False, filters=filters)
 
     # return the rendered data.
-    return data
+    return d
 
   # render the data until it does not change anymore.
   # we want to catch circular dependencies, so we'll keep a record of all
@@ -159,5 +157,5 @@ def scopedRenderTree( data, imports = None, filters = toNum, strict = True ):
     if s:
       raise RuntimeError(ExpressionErrorMsg % s )
 
-  return data['top']
+  return data
 

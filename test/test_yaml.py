@@ -155,7 +155,6 @@ def test_passthrough():
   assert data.time.stop  == 10
   assert data.time.dt    == 0.001
 
-@pytest.mark.xfail
 def test_physicsy():
   '''test a config typical of physics simulations'''
   data = '''
