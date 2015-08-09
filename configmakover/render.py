@@ -113,6 +113,7 @@ def scopedRenderTree( data, imports = None, filters = toNum, strict = True ):
      if possible. If no such parameter exists, then the first branch containg the parmeter name
      will be used.
   '''
+  data = {'top' : data}
 
   def singlePass( data ):
     '''A single pass through the entire tree'''
@@ -158,5 +159,5 @@ def scopedRenderTree( data, imports = None, filters = toNum, strict = True ):
     if s:
       raise RuntimeError(ExpressionErrorMsg % s )
 
-  return data
+  return data['top']
 

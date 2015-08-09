@@ -63,8 +63,7 @@ def readConfig( text = None, parser = yaml.load
 
   # if render is set, we want to render the data tree
   if render:
-    data = scopedRenderTree( {'top' : data}, imports=imports, filters=render_filters, strict=not ignore_expression_errors )
-    data  = data['top']
+    data = scopedRenderTree( data, imports=imports, filters=render_filters, strict=not ignore_expression_errors )
 
   # if post filters where given, apply them
   if not post_filters is None:
