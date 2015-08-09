@@ -1,12 +1,12 @@
-Mako-powered Configuration Files
+Template Configuration Files
 ================================
 
-Configure your application with the power of Mako templates.
+Configure your application with the power of templates.
 
 Features
 --------
 
-config-makover is a module that allows you to write configuration files containing Mako template expressions.
+`config-makover` is a module that allows you to write configuration files containing Tempita template expressions.
 These can be used to do simple variable substitution (have one parameter in your configuration file be automatically
 set to the value of another parameter) or more complicated computations (have the value of a parameter
 be automatically calculated from another parameter). It has the following features.
@@ -14,7 +14,7 @@ be automatically calculated from another parameter). It has the following featur
   - Recursive parameter substitution. Configuration data is stored in a tree an parameter substitution occurs
     within branches of the tree.
   - Parameter calculation. Configuration data can be automatically calculated using Python expressions.
-  - It is file format agnostic. config-makover does not parse configuration files. It relies on a "loader".
+  - It is file format agnostic. `config-makover` does not parse configuration files. It relies on a "loader".
     If you have a function that can take a string contining the text of your configuration file and return
     a configuration tree (nested dict and list) then you can use config-makeover.
   - Filters. You can provide a list of callables that will be applied to every element in the configuration
@@ -22,10 +22,22 @@ be automatically calculated from another parameter). It has the following featur
     to a number are numbers? Just write a filter (actually, this is done by default). Want to have any values
     containing a list of numbers ( '1,2,3,4' ) to expand into an actual list? Just write a filter.
 
+###What's with the name?
+`config-makover` originally used Mako as its template engine, but it required a modified version to allow multiple
+passes on a single template (Mako will fail if an undefined variable is references in an expression). The Mako
+project was not interested in adding support for passing through expressions that failed unmodified (so
+that future passes on the same template can attempt to replace the expression), so a patched version was used.
+However, the only real reason for using Mako was that it supported arbitrary
+Python expressions in its templates, which most template engines do not.
+
+Eventually, we found Tempita, which also allows arbitrary python code in its template expressions. It turned out
+that Tempita is quite a bit smaller (i.e. simpler) than Mako, and a simple monkey-patch can add the functionality
+we need.
+
 Example
 -------
 YAML is a great language for writing configuration files. It is simple to write, configuration options
-can be stored in a logical hierarchy, and it is easy to get into your Python code. config-makover simply
+can be stored in a logical hierarchy, and it is easy to get into your Python code. `config-makover` simply
 adds the power of Mako Expressions to your YAML file so you can do something like:
 
     #! /usr/bin/python
@@ -33,20 +45,20 @@ adds the power of Mako Expressions to your YAML file so you can do something lik
     from configmakover.read import *
 
     text = '''
-    <%!
+    {{py:
       import math
-    %>
+    }}
     var1 : 1
     var2 : some string
     var3 : 3
-    var4 : ${var3 + math.pi + 2}
-    var5 : ${var4 + 2.0}
+    var4 : {{var3 + math.pi + 2}}
+    var5 : {{var4 + 2.0}}
     nest1 :
       var1 : 11
-      var2 : ${var3 + 12}
-      var3 : ${var1 + 12}
-      var4 : ${var3 + 12}
-      var5 : ${nest1['var3'] + 12}
+      var2 : {{var3 + 12}}
+      var3 : {{var1 + 12}}
+      var4 : {{var3 + 12}}
+      var5 : {{nest1['var3'] + 12}}
     '''
 
 
@@ -76,40 +88,40 @@ configuration file that looks like this.
       dt : 0.001
 
 Now suppose you want to be able to set the grid size (N) based on a desired resolution. You could either 1) modify your code to accept a dx and dy
-configuration parameter, or 2) give you configuration file a makeover with config-makover (I know, it's ridiculous),
+configuration parameter, or 2) give you configuration file a makeover with `config-makover` (I know, it's ridiculous),
 
     # heat solver configuration
     grid:
       x:
         min : 0
         max : 10
-        N   : ${int( (max - min)/0.1 )}
+        N   : {{int( (max - min)/0.1 )}}
       y:
         min : 0
         max : 20
-        N   : ${int( (max - min)/0.1 )}
+        N   : {{int( (max - min)/0.1 )}}
     time:
       start : 0
       stop : 10
       dt : 0.001
 
 If you chose to modify your code to a accept a resolution parameter, you would have to write logic to check which parameter was specified, N or dx. But what
-if both where given? By using config-makover, you keep your configuration logic simple while having power to create configurations that auto-compute
+if both where given? By using `config-makover`, you keep your configuration logic simple while having power to create configurations that auto-compute
 parameter values. What if you want the x and y resolution to be the same, but you would like to be able to easily change it?
 
     # heat solver configuration
-    <%!
+    {{py:
       res = 0.001
-    %>
+    }}
     grid:
       x:
         min : 0
         max : 10
-        N   : ${int( (max - min)/res )}
+        N   : {{int( (max - min)/res )}}
       y:
         min : 0
         max : 20
-        N   : ${int( (max - min)/res )}
+        N   : {{int( (max - min)/res )}}
     time:
       start : 0
       stop : 10
@@ -205,5 +217,5 @@ https://bitbucket.org/CD3/mako.
 The makover.py script
 ---------------------
 
-If you don't have a Python interface to your application, you can still use config-makover. A script named
+If you don't have a Python interface to your application, you can still use `config-makover`. A script named
 ``makover.py`` is included that can read a templated configuration file and write a rendered configuration file.
