@@ -11,7 +11,7 @@ These can be used to do simple variable substitution (have one parameter in your
 set to the value of another parameter) or more complicated computations (have the value of a parameter
 be automatically calculated from another parameter). It has the following features.
 
-  - Recursive parameter substitution. Configuration data is stored in a tree an parameter substitution occurs
+  - Recursive parameter substitution. Configuration data is stored in a tree and parameter substitution occurs
     within branches of the tree.
   - Parameter calculation. Configuration data can be automatically calculated using Python expressions.
   - It is file format agnostic. `config-makover` does not parse configuration files. It relies on a "loader".
@@ -23,22 +23,22 @@ be automatically calculated from another parameter). It has the following featur
     containing a list of numbers ( '1,2,3,4' ) to expand into an actual list? Just write a filter.
 
 ###What's with the name?
-`config-makover` originally used Mako as its template engine, but it required a modified version to allow multiple
-passes on a single template (Mako will fail if an undefined variable is references in an expression). The Mako
+`config-makover` originally used Tempita as its template engine, but it required a modified version to allow multiple
+passes on a single template (Tempita will fail if an undefined variable is references in an expression). The Tempita
 project was not interested in adding support for passing through expressions that failed unmodified (so
 that future passes on the same template can attempt to replace the expression), so a patched version was used.
-However, the only real reason for using Mako was that it supported arbitrary
+However, the only real reason for using Tempita was that it supported arbitrary
 Python expressions in its templates, which most template engines do not.
 
 Eventually, we found Tempita, which also allows arbitrary python code in its template expressions. It turned out
-that Tempita is quite a bit smaller (i.e. simpler) than Mako, and a simple monkey-patch can add the functionality
+that Tempita is quite a bit smaller (i.e. simpler) than Tempita, and a simple monkey-patch can add the functionality
 we need.
 
 Example
 -------
 YAML is a great language for writing configuration files. It is simple to write, configuration options
 can be stored in a logical hierarchy, and it is easy to get into your Python code. `config-makover` simply
-adds the power of Mako Expressions to your YAML file so you can do something like:
+adds the power of Tempita Expressions to your YAML file so you can do something like:
 
     #! /usr/bin/python
 
@@ -65,7 +65,7 @@ adds the power of Mako Expressions to your YAML file so you can do something lik
     config = readConfig( text )
     print yaml.dump(config, default_flow_style=False)
 
-The YAML configuration file is loaded into a nested dictionary and then ran through a Mako Template with itself as a Context. The result
+The YAML configuration file is loaded into a nested dictionary and then ran through a Tempita Template with itself as a Context. The result
 is that you can reference the value of other parameters in the configuration file to set the value of a parameter.
 
 This is extremely useful if you write code that does numerical calculations, like a physics simulation.
@@ -149,7 +149,7 @@ Don't want to learn YAML or JSON? Just use INI,
     config = readConfig( text, parser=ini.load )
 
 
-Because Mako expressions are just Python expressions, you can pretty much do anything you want! It's time to give you configuration a makeover, write
+Because Tempita expressions are just Python expressions, you can pretty much do anything you want! It's time to give you configuration a makeover, write
 it once, configure forever (ugh, how cheesy can we get?)
 
 What it does
@@ -157,7 +157,7 @@ What it does
 
 The ``readConfig`` function reads a configuration string and returns a configuration tree. It does several things in between.
 
-1. The configuration string is passed through Mako as a template. So, you configuration file can be a full blown Mako template as long as this template renders to a string than can be parsed by the loader/de-serializer.
+1. The configuration string is passed through Tempita as a template. So, you configuration file can be a full blown Tempita template as long as this template renders to a string than can be parsed by the loader/de-serializer.
 
 2. The configuration string is parsed by a loader/de-serializer such as YAML.load or JSON.loads.
 
@@ -173,8 +173,8 @@ The rendering step is where most of the work (and power) happens. The rendering
 process will replace any references to other parameters in the configuration
 tree with their values. This is similar to the parameter interpolation in
 ConfigParser, but it is much more powerful. First, the configuration data is
-stored in a tree. Second, Mako is used to do the rendering, so all variable
-substitution are actually Mako expressions, which means they can contain arbitrary
+stored in a tree. Second, Tempita is used to do the rendering, so all variable
+substitution are actually Tempita expressions, which means they can contain arbitrary
 Python code.
 
 The rendering process consists of several step. The rendering function is called recursively on the branches
@@ -190,7 +190,7 @@ When a specific branch of the configuration tree is being rendered, the followin
 
 2. A hash of the configuration string is stored.
 
-3. The configuration string is treated as a Mako template and is rendered using the configuration tree
+3. The configuration string is treated as a Tempita template and is rendered using the configuration tree
    for the context.
 
 4. The configuration tree is replaced with the tree created from de-serializing the rendered configuration string.
@@ -201,18 +201,14 @@ When a specific branch of the configuration tree is being rendered, the followin
    the process is repeated with the updated configuration tree.
 
 In addition to these steps, a set of user defined functions are used to "filter" the configuration tree elements
-after each Mako render.  This allows the caller to process the configuration data in between renderings. For
+after each Tempita render.  This allows the caller to process the configuration data in between renderings. For
 example, you may need to make sure that all elements that can be converted to numbers are converted to numbers
 before the next render occurs so that their values can be used calculations performed by other expressions.
 
 Installation
 ------------
 Just copy the configmakover directory to a directory in your PYTHONPATH
-(It's still early, I have developed an installer).  However,
-configmakover currently uses a patched version of Mako that allows for
-missing parameters to be ignored (actually, it allows any expression that
-contains an error to be ignored). Currently this patched version is available at
-https://bitbucket.org/CD3/mako.
+(It's still early, I haven't developed an installer).
 
 The makover.py script
 ---------------------
