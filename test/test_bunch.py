@@ -6,10 +6,10 @@ from configmakover.read import *
 
 def test_construction():
 
-  d = AttrDict( {'one':1, 'two':2} )
+  d = dict2bunch( {'one':1, 'two':2} )
   d.three = 3
-  d.four = AttrDict( {'one' : 41, 'two' : 42, 'three' : AttrDict( { 'one' : 431 } ) } )
-  d.five = [ 1, 2, 3, AttrDict( { 'one' : 541 } ) ]
+  d.four = dict2bunch( {'one' : 41, 'two' : 42, 'three' : { 'one' : 431 } } )
+  d.five = dict2bunch( [ 1, 2, 3, { 'one' : 541 } ] )
 
   assert d.one == 1
   assert d.two == 2
@@ -41,7 +41,7 @@ def test_conversion():
   assert d['five'][3]['one'] == 541
 
 
-  d = toAttrDict(d)
+  d = dict2bunch(d)
   assert d.one == 1
   assert d.two == 2
   assert d.three == 3

@@ -1,6 +1,7 @@
-import dpath.util
 import inspect
 from collections import Mapping, Sequence, Container
+import dpath.util
+import tempita
 
 STR_TYPES = (str,unicode)
 def iterator( obj ):
@@ -10,15 +11,15 @@ def iterator( obj ):
     return xrange( len( obj ) )
   return None
 
-def toAttrDict( d ):
-  '''Replaces all intances of dict() with AttrDict() in a data tree.'''
+def dict2bunch( d ):
+  '''Replaces all dict's in a data tree with with tempita.bunch's.'''
   it = iterator( d )
   if it:
     for i in it:
-      d[i] = toAttrDict( d[i] )
+      d[i] = dict2bunch( d[i] )
 
   if isinstance( d, Mapping ):
-    return AttrDict( d )
+    return tempita.bunch( **d )
   else:
     return d
 

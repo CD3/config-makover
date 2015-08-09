@@ -83,7 +83,7 @@ def renderTree( data, imports = None, filters = toNum, strict = False ):
     logging.debug( data )
     t = Template(imports_text+serialized_data)
     if isinstance(data,Mapping):
-      data = toAttrDict(data)
+      data = dict2bunch(data)
     else:
       data = {'this' : data }
     serialized_data = t.substitute( **data )

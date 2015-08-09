@@ -143,7 +143,7 @@ def test_passthrough():
   '''
 
 
-  data = toAttrDict( readConfig( data, render_filters=toNum ) )
+  data = dict2bunch( readConfig( data, render_filters=toNum ) )
 
   assert data.grid.x.min == 0
   assert data.grid.x.max == 10
@@ -180,7 +180,7 @@ import math
   '''
 
 
-  data = toAttrDict( readConfig( data, render_filters=toNum ) )
+  data = dict2bunch( readConfig( data, render_filters=toNum ) )
 
   assert data.grid.x.min == 0
   assert data.grid.x.max == 10
