@@ -120,3 +120,23 @@ def test_scopedRenderTree_multi_ref():
   assert rendered_data['five']  == 2
   assert rendered_data['six']  == 2
 
+
+def test_renderDictTree():
+
+  data = { 'one' : 1
+          ,'two' : 2
+          ,'three': '{{ l("one") }}'
+          ,'@three_type' : 'int'
+          ,'four' : '{{l("one") + l("two")}}'
+          ,'@four_type' : 'int'
+          ,'level1' : { 'one' : 11
+                       ,'two' : 12
+                       ,'three': '{{l("one")}}'
+                       ,'@three_type' : 'int'
+                       ,'four' : '{{l("one") + l("two")}}'
+                       ,'@four_type' : 'int'
+                      }
+          ,'list1' : [ 0, 1, 2, [ 11, 12, 13 ] ]
+         }
+
+  rendered_data = renderDictTree( data )

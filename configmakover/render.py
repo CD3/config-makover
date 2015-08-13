@@ -2,6 +2,9 @@ from .utils import *
 from .filters import *
 from tempita import Template
 import yaml
+
+import dicttoxml, lxml.etree, xmldict
+
 import pickle
 import hashlib
 import logging
@@ -158,4 +161,93 @@ def scopedRenderTree( data, imports = None, filters = toNum, strict = True ):
       raise RuntimeError(ExpressionErrorMsg % s )
 
   return data
+
+def renderDictTree( data, context = {}, imports = None, filters = toNum, strict = False ):
+  '''Renders'''
+  
+  # get xml version of the data
+  data_xml = dicttoxml.dicttoxml( data )
+
+  data = renderXMLTree( data_xml, context, imports, filters, strict )
+
+  return data
+
+def renderXMLTree( data_xml , context = {}, imports = None, filters = toNum, strict = False ):
+
+  # get an etree of the data
+  data_tree = lxml.etree.fromstring( data_xml )
+  # explicitly set the type data for any elements
+  # that have a @*_type data specified.
+  for e in data_tree.iter():
+    tmp = "@%s_type" % e.tag
+    # check for a type entry
+    ee = e.find("../key[@name='%s']" % tmp)
+    if not ee is None:
+      e.attrib['type'] = ee.text
+
+  def local_lookup(element, path):
+    # tag names are relative to element, so we need
+    # to look for them in element's parent
+    parent = element.getparent()
+    if parent is None:
+      return None
+
+    # look for an element with the tag
+    e = parent.find(path)
+    if e is None:
+      return None
+
+    # get the data type, if available
+    vtype = e.attrib.get('type','str')
+    vval  = e.text
+
+    # convert element text to the correct type
+    # we need to do this, even though it is just going to get turned back into text in the XML
+    # because it the expression might be trying to use it in a calculation.
+    eval_str = "%s(%s)" % (vtype,vval)
+    try:
+      val = eval(eval_str)
+    except:
+      val = vval
+
+    return val
+
+  def global_lookup(element, path):
+    # the global
+    return 1
+
+  # now render the tree
+  for e in data_tree.iter():
+    if not e.text is None:
+      e.text = tempita.sub( e.text, l=lambda x : local_lookup(e,x) , g=lambda x : global_lookup(data_tree,x) )
+    
+  # get xml of new tree
+  data_text = lxml.etree.tostring( data_tree )
+
+  # de-serialize data to nested dict
+  data = xmldict.xml_to_dict( data_text )
+
+  # cast all text items to data
+  def cast( d ):
+    # if the dict has a #text element, we want cast the text to a type
+    # and return it
+    if isinstance( d, dict ) and '#text' in d:
+      try:
+        eval_str = "{@type}({#text})".format(**d)
+        v = eval(eval_str)
+      except:
+        v = d['#text']
+
+      d = v
+
+    # if d is iterable, then we need to loop through all items
+    # and cast each one
+    it = iterator( d )
+    if it:
+      for i in it:
+        d[i] =  cast( d[i] )
+
+    return d
+
+  data = cast( data )
 
