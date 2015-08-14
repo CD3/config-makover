@@ -227,6 +227,10 @@ def renderXMLTree( data_xml , context = {}, imports = None, filters = toNum, str
     while element.getparent():
       e = element.getparent()
 
+    e = e.find( path )
+    if e is None:
+      return None
+
     vtype = e.attrib.get('type','str')
     vval  = e.text
 

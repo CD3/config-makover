@@ -189,19 +189,21 @@ def test_renderDictTree_throw_on_undefined():
   with pytest.raises(RuntimeError):
     rendered_data = renderDictTree( data , strict=True )
 
-# def test_renderDictTree_multi_ref():
-  # data = { 'one' : 1
-          # ,'two' : '{{one}}'
-          # ,'three': '{{two}}'
-          # ,'four': '{{three}}'
-          # ,'five' : '{{one + 1}}'
-          # ,'six': '{{two + 1}}'
-         # }
-  # rendered_data = renderTree( data )
+def test_renderDictTree_multi_ref():
+  data = { 'one' : 1
+          ,'two' : '{{l("one")}}'
+          ,'three': '{{l("two")}}'
+          ,'four': '{{l("three")}}'
+          ,'five' : '{{l("one") + 1}}'
+          ,'six': '{{l("two") + 1}}'
+          ,'seven': '{{l("six") + 1}}'
+         }
+  rendered_data = renderDictTree( data )
 
-  # assert rendered_data['two'] == 1
-  # assert rendered_data['three']  == 1
-  # assert rendered_data['four'] == 1
-  # assert rendered_data['five']  == 2
-  # assert rendered_data['six']  == 2
+  assert rendered_data['two'] == 1
+  assert rendered_data['three']  == 1
+  assert rendered_data['four'] == 1
+  assert rendered_data['five']  == 2
+  assert rendered_data['six']  == 2
+  assert rendered_data['seven']  == 3
 

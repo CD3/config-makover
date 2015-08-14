@@ -4,6 +4,7 @@ from tempita import Template
 import re
 
 def readConfig( text = None, parser = yaml.load
+                           , renderer = scopedRenderTree
                            , preprocess = True
                            , render = True
                            , pre_filters = None
@@ -63,7 +64,7 @@ def readConfig( text = None, parser = yaml.load
 
   # if render is set, we want to render the data tree
   if render:
-    data = scopedRenderTree( data, imports=imports, filters=render_filters, strict=not ignore_expression_errors )
+    data = renderer( data, imports=imports, filters=render_filters, strict=not ignore_expression_errors )
 
   # if post filters where given, apply them
   if not post_filters is None:
