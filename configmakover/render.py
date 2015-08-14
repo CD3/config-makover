@@ -185,6 +185,16 @@ def renderXMLTree( data_xml , context = {}, imports = None, filters = toNum, str
     if not ee is None:
       e.attrib['type'] = ee.text
 
+  # remove metadata entries
+  rem = []
+  for e in data_tree.iter():
+    if e.tag == 'key' and 'name' in e.attrib:
+      if re.match( "@.*_type", e.attrib['name'] ):
+        rem.append(e)
+  for e in rem:
+    e.getparent().remove(e)
+
+
   def local_lookup(element, path):
     # tag names are relative to element, so we need
     # to look for them in element's parent
@@ -213,13 +223,49 @@ def renderXMLTree( data_xml , context = {}, imports = None, filters = toNum, str
     return val
 
   def global_lookup(element, path):
-    # the global
-    return 1
+    e = element
+    while element.getparent():
+      e = element.getparent()
+
+    vtype = e.attrib.get('type','str')
+    vval  = e.text
+
+    eval_str = "%s(%s)" % (vtype,vval)
+    try:
+      val = eval(eval_str)
+    except:
+      val = vval
+
+    return val
+
+  # build the python block for importing the modules listed
+  if isinstance( imports, str ):
+    imports = [imports]
+  imports_text = ""
+  if imports:
+    imports_text += "{{py:\n"
+    imports_text += "import "
+    imports_text += ", ".join( imports )
+    imports_text += "\n}}"
+
 
   # now render the tree
-  for e in data_tree.iter():
-    if not e.text is None:
-      e.text = tempita.sub( e.text, l=lambda x : local_lookup(e,x) , g=lambda x : global_lookup(data_tree,x) )
+  # keep rendering until the xml string repeats itself.
+  hashes = dict()
+  hasher = hashlib.sha1
+  hash = hasher(  lxml.etree.tostring(data_tree) ).hexdigest()
+  # apply the filters
+  while hashes.get( hash, 0 ) < 2:
+    # run every elment text through tempita
+    for e in data_tree.iter():
+      if not e.text is None:
+        e.text = tempita.sub( imports_text+e.text, l=lambda x : local_lookup(e,x) , g=lambda x : global_lookup(data_tree,x) )
+
+    # apply filters
+    applyFiltersETree( data_tree, filters )
+    hash = hasher(  lxml.etree.tostring(data_tree) ).hexdigest()
+    hashes[hash] = hashes.get(hash,0) + 1
+
     
   # get xml of new tree
   data_text = lxml.etree.tostring( data_tree )
@@ -249,5 +295,7 @@ def renderXMLTree( data_xml , context = {}, imports = None, filters = toNum, str
 
     return d
 
-  data = cast( data )
+  return cast( data )['root']
+
+
 
