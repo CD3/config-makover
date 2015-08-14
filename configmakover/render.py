@@ -295,7 +295,15 @@ def renderXMLTree( data_xml , context = {}, imports = None, filters = toNum, str
 
     return d
 
-  return cast( data )['root']
+  data = cast( data )['root']
+
+  if strict:
+    s = CheckForExpressions(data)
+    if s:
+      raise RuntimeError(ExpressionErrorMsg % s )
+
+  return data
+
 
 
 

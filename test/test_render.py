@@ -183,11 +183,11 @@ def test_renderDictTree_imports():
   assert utils.close( rendered_data['var3'], math.sqrt(2) + math.pi )
 
 
-# def test_renderDictTree_throw_on_undefined():
-  # data = { 'var1' : '{{missing}}' }
+def test_renderDictTree_throw_on_undefined():
+  data = { 'var1' : '{{missing}}' }
 
-  # with pytest.raises(RuntimeError):
-    # rendered_data = renderTree( data , strict=True )
+  with pytest.raises(RuntimeError):
+    rendered_data = renderDictTree( data , strict=True )
 
 # def test_renderDictTree_multi_ref():
   # data = { 'one' : 1
