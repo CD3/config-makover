@@ -1,12 +1,13 @@
 #! /usr/bin/python
 
-import sys, os
+import sys, os, timeit
 moddir = os.path.join( os.path.dirname( __file__ ), '..' )
 sys.path = [moddir] + sys.path
 
 import pytest
 
 from configmakover.read import *
+from configmakover.render import *
 
 import utils
 #logging.basicConfig( level=logging.DEBUG )
@@ -167,11 +168,15 @@ import math
     x:
       min : 0
       max : 10
-      N   : '{{int( (max - min)/top.res )}}'
+      N   : '{{int( (l("max") - l("min"))/g("res") )}}'
     y:
       min : 0
-      max : '{{2*x.max}}'
-      N   : '{{int( (max - min)/top.res )}}'
+      max : '{{2*l("../x/max")}}'
+      N   : '{{int( (l("max") - l("min"))/g("res") )}}'
+    z:
+      min : 0
+      max : '{{2*float(l._up.y.max)}}'
+      N   : '{{ (l.max - l.min)/g.res }}'
   time:
     start : 0
     stop : {{math.pow(10,2)}}
@@ -179,7 +184,7 @@ import math
   '''
 
 
-  data = dict2bunch( readConfig( data, render_filters=toNum ) )
+  data = dict2bunch( readConfig( data, renderer=renderDictTree, render_filters=toNum ) )
 
   assert data.grid.x.min == 0
   assert data.grid.x.max == 10
@@ -187,7 +192,31 @@ import math
   assert data.grid.y.min == 0
   assert data.grid.y.max == 20
   assert data.grid.y.N   == 20000
+  assert data.grid.z.min == 0
+  assert data.grid.z.max == 40
+  assert data.grid.z.N   == 40000
   assert data.time.start == 0
   assert data.time.stop  == 100
   assert data.time.dt    == 0.001
+
+#def test_performance():
+
+  #data = dict()
+
+  #data["v0"] = 10
+  #data["level_0"] = dict()
+  #data["level_0"]["v0"] = 100
+  #for i in range(1,2):
+    #data["v%s"%str(i)] = "{{l('v%s') + 1}}"%(i-1)
+    ## data["level_%s"%str(i)] = dict()
+    ## data["level_%s"%str(i)]['v0'] = "{{l('../level_%s/v0') + 1}}"%(i-1)
+    ## for j in range(1,1):
+      ## data["level_%s"%str(i)]["v%s"%str(j)] = "{{l('%s') + 1}}"%(j-1)
+
+  ## text = yaml.dump( data )
+  ## print text
+  #def run():
+    #renderDictTree(data)
+
+  ## timeit.timeit( run )
 

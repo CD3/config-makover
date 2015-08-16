@@ -1,4 +1,5 @@
 from .utils import *
+import lxml.etree
 
 def applyFilters( data, filters ):
   '''Applys a set of given functions to all elements in a data tree. The function called on each element is responsible for
@@ -21,6 +22,22 @@ def applyFilters( data, filters ):
 
   return data
 
+def applyFiltersETree( data_tree, filters ):
+  '''Apply filters to etree'''
+  if not isinstance( filters, list ):
+    filters = [filters]
+
+  for e in data_tree.iter():
+    if 'type' in e.attrib:
+      e.attrib
+    it = iterator(filters)
+    if not it is None:
+      for i in it:
+        filter = filters[i]
+        if filter is None:
+          continue
+        filter( e )
+
 
 def isContainer( val ):
   return ( isinstance(val,Mapping) or isinstance(val,Sequence) ) and not isinstance(val,STR_TYPES)
@@ -31,15 +48,19 @@ def toNum( val ):
   if isContainer(val):
     return val
 
-  try:
-    t = int
-    if str(val).find('.') > -1:
-      t = float
-    # TODO: add complex support
-      
-    return t(str(val))
-  except ValueError:
-    return val
+  if isinstance(val,lxml.etree._Element):
+    if 'type' in val.attrib:
+      val.attrib['type'] = 'float'
+  else:
+    try:
+      t = int
+      if str(val).find('.') > -1:
+        t = float
+      # TODO: add complex support
+        
+      return t(str(val))
+    except ValueError:
+      return val
 
 def expand_list( val ):
   '''Expands a string of comma separated values into a list instance.'''
