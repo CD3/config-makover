@@ -263,7 +263,7 @@ def renderXMLTree( data_xml , context = {}, imports = None, filters = toNum, str
     # run every elment text through tempita
     for e in data_tree.iter():
       if not e.text is None:
-        e.text = tempita.sub( imports_text+e.text, l=lambda x : local_lookup(e,x) , g=lambda x : global_lookup(data_tree,x) )
+        e.text = tempita.sub( imports_text+e.text, l=ETWrap(e.getparent()) , g=ETWrap(data_tree) )
 
     # apply filters
     applyFiltersETree( data_tree, filters )

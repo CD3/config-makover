@@ -192,24 +192,24 @@ import math
   assert data.time.stop  == 100
   assert data.time.dt    == 0.001
 
-def test_performance():
+#def test_performance():
 
-  data = dict()
+  #data = dict()
 
-  data["v0"] = 10
-  data["level_0"] = dict()
-  data["level_0"]["v0"] = 100
-  for i in range(1,2):
-    data["v%s"%str(i)] = "{{l('v%s') + 1}}"%(i-1)
-    # data["level_%s"%str(i)] = dict()
-    # data["level_%s"%str(i)]['v0'] = "{{l('../level_%s/v0') + 1}}"%(i-1)
-    # for j in range(1,1):
-      # data["level_%s"%str(i)]["v%s"%str(j)] = "{{l('%s') + 1}}"%(j-1)
+  #data["v0"] = 10
+  #data["level_0"] = dict()
+  #data["level_0"]["v0"] = 100
+  #for i in range(1,2):
+    #data["v%s"%str(i)] = "{{l('v%s') + 1}}"%(i-1)
+    ## data["level_%s"%str(i)] = dict()
+    ## data["level_%s"%str(i)]['v0'] = "{{l('../level_%s/v0') + 1}}"%(i-1)
+    ## for j in range(1,1):
+      ## data["level_%s"%str(i)]["v%s"%str(j)] = "{{l('%s') + 1}}"%(j-1)
 
-  # text = yaml.dump( data )
-  # print text
-  def run():
-    renderDictTree(data)
+  ## text = yaml.dump( data )
+  ## print text
+  #def run():
+    #renderDictTree(data)
 
-  # timeit.timeit( run )
+  ## timeit.timeit( run )
 
