@@ -128,13 +128,13 @@ def test_renderDictTree_simple():
           ,'two' : 2
           ,'three': "{{l('one')}}"
           ,'@three_type': "int"
-          ,'four' : "{{l('one') + l('two')}}"
+          ,'four' : "{{l.one + l.two}}"
           ,'@four_type': "int"
           ,'level1' : { 'one' : 11
                        ,'two' : 12
                        ,'three': '{{l("one")}}'
                        ,'@three_type': "int"
-                       ,'four' : '{{l("one") + l("two")}}'
+                       ,'four' : '{{l.one + l.two}}'
                        ,'@four_type': "int"
                       }
          }
