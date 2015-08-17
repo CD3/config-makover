@@ -4,7 +4,6 @@ from tempita import Template
 import re
 
 def readConfig( text = None, parser = yaml.load
-                           , renderer = scopedRenderTree
                            , preprocess = True
                            , render = True
                            , pre_filters = None
@@ -60,15 +59,15 @@ def readConfig( text = None, parser = yaml.load
 
   # if pre filters where given, apply them
   if not pre_filters is None:
-    data = applyFilters(data, pre_filters)
+    data = applyFiltersToDict(data, pre_filters)
 
   # if render is set, we want to render the data tree
   if render:
-    data = renderer( data, imports=imports, filters=render_filters, strict=not ignore_expression_errors )
+    data = renderDictTree( data, imports=imports, filters=render_filters, strict=not ignore_expression_errors )
 
   # if post filters where given, apply them
   if not post_filters is None:
-    data = applyFilters(data, post_filters)
+    data = applyFiltersToDict(data, post_filters)
   
   return data
 

@@ -22,8 +22,6 @@ def test_chained_references_performance():
   timer = timeit.Timer( lambda: renderDictTree(data) )
   print timer.timeit(1)
 
-  timer = timeit.Timer( lambda: scopedRenderTree(dict2bunch({'l':data})) )
-  print timer.timeit(1)
 
 def test_reversed_chained_references_performance():
 
@@ -38,5 +36,3 @@ def test_reversed_chained_references_performance():
   timer = timeit.Timer( lambda: renderDictTree(data) )
   print timer.timeit(1)
 
-  timer = timeit.Timer( lambda: scopedRenderTree(dict2bunch({'l':data})) )
-  print timer.timeit(1)

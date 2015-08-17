@@ -1,7 +1,7 @@
 from .utils import *
 import lxml.etree
 
-def applyFilters( data, filters ):
+def applyFiltersToDict( data, filters ):
   '''Applys a set of given functions to all elements in a data tree. The function called on each element is responsible for
      handling any errors.'''
   it = iterator(filters)
@@ -22,7 +22,7 @@ def applyFilters( data, filters ):
 
   return data
 
-def applyFiltersETree( data_tree, filters ):
+def applyFiltersToETree( data_tree, filters ):
   '''Apply filters to etree'''
   if not isinstance( filters, list ):
     filters = [filters]

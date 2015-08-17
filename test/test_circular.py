@@ -15,8 +15,8 @@ def test_circular_deps():
   with pytest.raises(RuntimeError):
     data = '''
     var1 : 1
-    var2 : '{{var3}}'
-    var3 : '{{var2}}'
+    var2 : '{{l.var3}}'
+    var3 : '{{l.var2}}'
     nest1 :
       var1 : 11
       var2 : 12

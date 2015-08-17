@@ -20,23 +20,17 @@ import math, numpy
 var1 = 1
 var2 = some string
 var3 = 3
-var4 = {{var3 + math.pi + 2}}
-var5 = {{var4 + 2.0}}
+var4 = {{l.var3 + math.pi + 2}}
+var5 = {{l.var4 + 2.0}}
 [nest1]
 var1 = 11
-var2 = {{var3 + 12}}
-var3 = {{var1 + 12}}
-var4 = {{var3 + 12}}
-var5 = {{nest1.var3 + 12}}
+var2 = {{l.var3 + 12}}
+var3 = {{l.var1 + 12}}
+var4 = {{l.var3 + 12}}
+var5 = {{g.nest1.var3 + 12}}
 '''
 
-  def num(x,y):
-    try:
-      return float(x)
-    except:
-      return x
-
-  data = readConfig( data, parser = ini.load, render_filters = num )
+  data = readConfig( data, parser = ini.load, render_filters = toNum )
 
   assert data['main']['var1'] == 1
   assert data['main']['var2'] == 'some string'
