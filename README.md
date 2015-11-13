@@ -23,15 +23,15 @@ be automatically calculated from another parameter). It has the following featur
     containing a list of numbers ( '1,2,3,4' ) to expand into an actual list? Just write a filter.
 
 ###What's with the name?
-`config-makover` originally used Tempita as its template engine, but it required a modified version to allow multiple
-passes on a single template (Tempita will fail if an undefined variable is references in an expression). The Tempita
+`config-makover` originally used Mako as its template engine, but it required a modified version to allow multiple
+passes on a single template (Mako will fail if an undefined variable is references in an expression). The Mako
 project was not interested in adding support for passing through expressions that failed unmodified (so
 that future passes on the same template can attempt to replace the expression), so a patched version was used.
-However, the only real reason for using Tempita was that it supported arbitrary
+However, the only real reason for using Mako in the first place was that it supported arbitrary
 Python expressions in its templates, which most template engines do not.
 
 Eventually, we found Tempita, which also allows arbitrary python code in its template expressions. It turned out
-that Tempita is quite a bit smaller (i.e. simpler) than Tempita, and a simple monkey-patch can add the functionality
+that Tempita is quite a bit smaller (i.e. simpler) than Mako, and a simple monkey-patch can add the functionality
 we need.
 
 Example
