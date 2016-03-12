@@ -86,3 +86,24 @@ class ETWrap:
   __getitem__ = __getattr__
   __call__    = __getattr__
 
+def gettipkeys( data,separator='/' ):
+  '''Return a list of paths to the tips of a nested dict.'''
+  keys = [ x[0] for x in dpath.util.search( data, '**', separator=separator, yielded=True ) ]
+
+  # keys is a list of all keys in the data tree. we want to get a list of just the tips
+
+  tipkeys = []
+  for i in range(len(keys)):
+    found = False
+    for j in range(len(keys)):
+      if i == j:
+        continue
+      if keys[j].startswith(keys[i]):
+        found = True
+
+    if not found:
+      tipkeys.append( keys[i] )
+
+  return tipkeys
+
+

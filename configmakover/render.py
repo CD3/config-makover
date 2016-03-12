@@ -2,6 +2,7 @@ from .utils import *
 from .filters import *
 from tempita import Template
 import yaml
+import dpath
 
 import dicttoxml, lxml.etree, xmldict
 
@@ -43,8 +44,9 @@ def CheckForExpressions(data):
 ExpressionErrorMsg = "One or more expressions where not replaced. The first one was '%s', but there may be others."
 
 def renderDictTree( data, context = {}, imports = None, filters = toNum, strict = False ):
-  '''Renders'''
+  '''Renders a dictionary'''
   
+  print [ x[0] for x in dpath.util.search( data, '**', yielded=True ) ]
   # get xml version of the data
   data_xml = dicttoxml.dicttoxml( data )
 

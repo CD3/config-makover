@@ -30,7 +30,7 @@ class keyval:
   '''A simple key=val style parser.'''
 
   @staticmethod
-  def load( text ):
+  def load( text, separator=None ):
     data = dict()
     for line in text.split('\n'):
       line = line.strip()
@@ -48,7 +48,7 @@ class keyval:
       key = key.strip()
       val = val.strip()
 
-      data[key] = val
+      dpath.util.new(data,key,val,separator=separator)
 
 
 
@@ -56,11 +56,14 @@ class keyval:
 
   @staticmethod
   def dump( data ):
+    keys = sorted( gettipkeys(data) )
+
     text = ""
-    for k in sorted(data.keys()):
+    for i in range(len(keys)):
+      k = keys[i]
       text += k
       text += " = "
-      text += str(data[k])
+      text += str( dpath.util.get( data, k ) )
       text += "\n"
 
     return text
