@@ -189,7 +189,43 @@ def renderXMLTree( data_xml , context = {}, imports = None, filters = toNum, str
 
 def renderPathDict( data, context = PathDict(), spec = PathDict(), imports = [], filters = [], strict = False ):
 
-  pass
+  # build the python block for importing the modules listed
+  imports_text = ""
+  if isinstance( imports, str ):
+    imports = [imports]
+  if not imports is None and len(imports) > 0:
+    imports_text = ""
+    imports_text += "{{py:\n"
+    imports_text += "import "
+    imports_text += ", ".join( imports )
+    imports_text += "\n}}\n"
+
+  # now render the tree
+  # keep rendering until the tree repeats itself
+  hashes = dict()
+  hash =  hashlib.sha1( pickle.dumps(data) ).hexdigest()
+  hashes[hash] = hashes.get(hash,0) + 1
+  while hashes.get( hash, 0 ) < 2:
+    keys = data.get_tippaths()
+    for key in keys:
+      if isinstance( data[key], (str,unicode) ):
+        data[key] = tempita.sub( imports_text+data[key], c=data.get_node( data._join( key,'..' ) ) )
+    hash =  hashlib.sha1( pickle.dumps(data) ).hexdigest()
+    hashes[hash] = hashes.get(hash,0) + 1
+
+    # # apply filters
+    # applyFiltersToETree( data_tree, filters )
+    # hash = hasher(  lxml.etree.tostring(data_tree) ).hexdigest()
+    # hashes[hash] = hashes.get(hash,0) + 1
+
+    
+  # # get xml of new tree
+  # data_text = lxml.etree.tostring( data_tree )
+
+  # # de-serialize data to nested dict
+  # data = xmldict.xml_to_dict( data_text )
+
+  return data
 
 
 

@@ -141,3 +141,5 @@ class PathDict(object):
   def get_tippaths(self):
     keys = gettipkeys( self.dict, '/' )
 
+    return keys
+

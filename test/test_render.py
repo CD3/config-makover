@@ -95,3 +95,20 @@ def test_renderDictTree_multi_ref():
   assert rendered_data['six']  == 2
   assert rendered_data['seven']  == 3
 
+def test_renderPathDict():
+  data = PathDict({ 'one' : 1
+                   ,'two' : 2
+                   ,'three': "{{c['one']}}"
+                   ,'four' : "{{c['one'] + c['two']}}"
+                   ,'level1' : { 'one' : 11
+                                ,'two' : 12
+                                ,'three': '{{c["one"]}}'
+                                ,'four' : '{{c["one"] + c["two"]}}'
+                               }
+                  } )
+  rendered_data = renderPathDict( data )
+
+  assert rendered_data['three'] == str(1)
+  assert rendered_data['four']  == str(3)
+  assert rendered_data['level1']['three'] == str(11)
+  assert rendered_data['level1']['four']  == str(11 + 12)
