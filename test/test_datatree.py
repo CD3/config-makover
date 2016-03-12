@@ -2,7 +2,8 @@ import math, os, sys
 moddir = os.path.join( os.path.dirname( __file__ ), '..' )
 sys.path = [moddir] + sys.path
 
-from configmakover.utils import *
+from configmakover.DataTree import *
+
 
 def test_operations():
 
@@ -14,7 +15,7 @@ def test_operations():
                    }
          }
 
-  pdata = PathDict( data )
+  pdata = DataTree( data )
 
   assert pdata.get('one') == 1
   assert pdata.get('l1/one') == 11
@@ -45,5 +46,22 @@ def test_operations():
   assert pdata['/l1/l2/one'] == 122
             
 
+def test_spec():
+  data = DataTree( { 'one' : '1'
+                   , 'two' : '2'
+                   , 'l1'  : { 'one' : '11.1'
+                             , 'two' : '12.2'
+                             , 'l2'  : { 'one' : '121' }
+                             }
+                   } )
+  data.set_spec( '/one/type', 'int' )
+  data.set_spec( '/two/type', 'int' )
+  data.set_spec( '/l1/one/type', 'float|int' )
+  data.set_spec( '/l1/two/type', 'float' )
+
+  assert data['one'] == 1
+  assert data['two'] == 2
+  assert data['l1/one'] == 11
+  assert data['l1/two'] == 12.2
 
 
