@@ -19,13 +19,13 @@ def test_operations():
   assert pdata.get('one') == 1
   assert pdata.get('l1/one') == 11
 
-  assert pdata.get_node('/l1').path == '/l1'
-  assert pdata.get_node('l1').path == '/l1'
-  assert pdata.get_node('/l1/l2').path == '/l1/l2'
-  assert pdata.get_node('l1/l2').path == '/l1/l2'
-  assert pdata.get_node('l1').get_node('./').path == '/l1'
-  assert pdata.get_node('l1').get_node('l2').path == '/l1/l2'
-  assert pdata.get_node('l1').get_node('l2').get_node('..').path == '/l1'
+  assert pdata.get_node('/l1').root == '/l1/'
+  assert pdata.get_node('l1').root == '/l1/'
+  assert pdata.get_node('/l1/l2').root == '/l1/l2/'
+  assert pdata.get_node('l1/l2').root == '/l1/l2/'
+  assert pdata.get_node('l1').get_node('./').root == '/l1/'
+  assert pdata.get_node('l1').get_node('l2').root == '/l1/l2/'
+  assert pdata.get_node('l1').get_node('l2').get_node('..').root == '/l1/'
 
   pdata.set( '/l1/one', 'one' )
   pdata.set( '/l1/three', 3 )

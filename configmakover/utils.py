@@ -108,9 +108,9 @@ def gettipkeys( data,separator='/' ):
 
 class PathDict(object):
   '''Wrapper for nested dicts that allow accessing dict elements with paths like a filesystem.'''
-  def __init__(self, d, p = '/'):
+  def __init__(self, d = dict(), p = '/'):
     self.dict = d
-    self.path = p
+    self.root = p
 
   def __getitem__(self,k):
     return self.get(k)
@@ -119,7 +119,7 @@ class PathDict(object):
     return self.set(k,v)
 
   def get_node(self,p):
-    return PathDict( self.dict, self._abspath( p ) )
+    return PathDict( self.dict, self._abspath( p )+'/' )
 
   def get(self,p):
     return dpath.util.get( self.dict, self._abspath(p) )
@@ -134,7 +134,10 @@ class PathDict(object):
     if p[0] == '/':
       path = p
     else:
-      path = self._join( self.path, p )
+      path = self._join( self.root, p )
 
     return os.path.normpath( path )
+
+  def get_tippaths(self):
+    keys = gettipkeys( self.dict, '/' )
 

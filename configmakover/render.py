@@ -22,15 +22,10 @@ def _eval(self, code, ns, pos):
     value = '{{'+code+'}}'
 
   return value
-
 Template._eval = _eval
-
-
 
 loader = pickle.loads
 dumper = pickle.dumps
-#loader = yaml.load
-#dumper = yaml.dump
 
 def CheckForExpressions(data):
     serialized_data = dumper(data)
@@ -40,8 +35,9 @@ def CheckForExpressions(data):
       return s
     else:
       return None
-
 ExpressionErrorMsg = "One or more expressions where not replaced. The first one was '%s', but there may be others."
+
+
 
 def renderDictTree( data, context = {}, imports = None, filters = toNum, strict = False ):
   '''Renders a dictionary'''
@@ -190,6 +186,10 @@ def renderXMLTree( data_xml , context = {}, imports = None, filters = toNum, str
 
   return data
 
+
+def renderPathDict( data, context = PathDict(), spec = PathDict(), imports = [], filters = [], strict = False ):
+
+  pass
 
 
 
