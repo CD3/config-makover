@@ -1,4 +1,4 @@
-import inspect, re
+import inspect, re, os
 from collections import Mapping, Sequence, Container
 import dpath.util
 import tempita
@@ -106,4 +106,35 @@ def gettipkeys( data,separator='/' ):
 
   return tipkeys
 
+class PathDict(object):
+  '''Wrapper for nested dicts that allow accessing dict elements with paths like a filesystem.'''
+  def __init__(self, d, p = '/'):
+    self.dict = d
+    self.path = p
+
+  def __getitem__(self,k):
+    return self.get(k)
+
+  def __setitem__(self,k,v):
+    return self.set(k,v)
+
+  def get_node(self,p):
+    return PathDict( self.dict, self._abspath( p ) )
+
+  def get(self,p):
+    return dpath.util.get( self.dict, self._abspath(p) )
+
+  def set(self,p,v):
+    return dpath.util.new( self.dict, self._abspath(p), v )
+
+  def _join(self,*args):
+    return os.path.normpath( os.path.join( *args ) )
+
+  def _abspath(self,p):
+    if p[0] == '/':
+      path = p
+    else:
+      path = self._join( self.path, p )
+
+    return os.path.normpath( path )
 

@@ -41,6 +41,8 @@ def test_keyval_loader_nested():
   key4 = 44
 
   level1/key1 = 11
+  level1/level1/key1 = 111
+  level1/level2/key1 = 121
   '''
 
   data = keyval.load( text )
@@ -50,6 +52,8 @@ def test_keyval_loader_nested():
   assert data['key3'] == '3'
   assert data['key4'] == '44'
   assert data['level1/key1'] == '11'
+  assert data['level1/level1/key1'] == '111'
+  assert data['level1/level2/key1'] == '121'
 
 
   data = keyval.load( text, separator='/' )
@@ -59,6 +63,13 @@ def test_keyval_loader_nested():
   assert data['key3'] == '3'
   assert data['key4'] == '44'
   assert data['level1']['key1'] == '11'
+  assert data['level1']['level1']['key1'] == '111'
+  assert data['level1']['level2']['key1'] == '121'
+
+  assert dpath.util.get( data, 'level1/level1/key1' ) == '111'
+  assert dpath.util.get( data, os.path.normpath('level1/level1/../level2/key1') ) == '121'
+
+
 
   with pytest.raises(RuntimeError):
     text += "key"
