@@ -15,18 +15,19 @@ import utils
 def test_renderDictTree_simple():
   data = { 'one' : 1
           ,'two' : 2
-          ,'three': "{{l('one')}}"
+          ,'three': "{{c['one']}}"
           ,'@three_type': "int"
-          ,'four' : "{{l.one + l.two}}"
+          ,'four' : "{{c.one + c.two}}"
           ,'@four_type': "int"
           ,'level1' : { 'one' : 11
                        ,'two' : 12
-                       ,'three': '{{l("one")}}'
+                       ,'three': '{{c["one"]}}'
                        ,'@three_type': "int"
-                       ,'four' : '{{l.one + l.two}}'
+                       ,'four' : '{{c.one + c.two}}'
                        ,'@four_type': "int"
                       }
          }
+
   rendered_data = renderDictTree( data )
 
   assert rendered_data['three'] == 1
@@ -37,11 +38,11 @@ def test_renderDictTree_simple():
 def test_renderDictTree_missing_var():
   data = { 'one' : 1
           ,'two' : 2
-          ,'three': '{{l("one")}}'
+          ,'three': '{{c["one"]}}'
           ,'@three_type': "int"
-          ,'four' : '{{l("one") + l("two")}}'
+          ,'four' : '{{c["one"] + c["two"]}}'
           ,'@four_type': "int"
-          ,'five' : '{{l("missing")}}'
+          ,'five' : '{{c["missing"]}}'
           ,'level1' : { 'one' : 11
                        ,'two' : 12
                        ,'three': '{{l("one")}}'
@@ -62,7 +63,7 @@ def test_renderDictTree_imports():
   # test that we can import modules that are needed for rendering
   data = { 'var1' : '{{math.sqrt(2)}}'
           ,'var2' : '{{numpy.sqrt(2)}}'
-          ,'var3' : '{{l("var1") + math.pi}}'
+          ,'var3' : '{{c["var1"] + math.pi}}'
          }
   rendered_data = renderDictTree( data, imports = ['math','numpy'] )
 
@@ -80,12 +81,12 @@ def test_renderDictTree_throw_on_undefined():
 
 def test_renderDictTree_multi_ref():
   data = { 'one' : 1
-          ,'two' : '{{l("one")}}'
-          ,'three': '{{l("two")}}'
-          ,'four': '{{l("three")}}'
-          ,'five' : '{{l("one") + 1}}'
-          ,'six': '{{l("two") + 1}}'
-          ,'seven': '{{l("six") + 1}}'
+          ,'two' : '{{c["one"]}}'
+          ,'three': '{{c["two"]}}'
+          ,'four': '{{c["three"]}}'
+          ,'five' : '{{c["one"] + 1}}'
+          ,'six': '{{c["two"] + 1}}'
+          ,'seven': '{{c["six"] + 1}}'
          }
   rendered_data = renderDictTree( data )
 
@@ -107,12 +108,13 @@ def test_renderDataTree():
                                 ,'four' : '{{c["one"] + c["two"]}}'
                                }
                   } )
+
   rendered_data = renderDataTree( data )
 
-  assert rendered_data['three'] == str(1)
-  assert rendered_data['four']  == str(3)
-  assert rendered_data['level1']['three'] == str(11)
-  assert rendered_data['level1']['four']  == str(11 + 12)
+  assert rendered_data['three'] == 1
+  assert rendered_data['four']  == 3
+  assert rendered_data['level1']['three'] == 11
+  assert rendered_data['level1']['four']  == 11 + 12
 
 def test_renderDataTree_multi_ref():
 

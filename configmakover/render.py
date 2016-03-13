@@ -40,18 +40,8 @@ ExpressionErrorMsg = "One or more expressions where not replaced. The first one 
 
 
 
-def renderDictTree( data, context = {}, imports = None, filters = toNum, strict = False ):
-  '''Renders a dictionary'''
-  
-  # get xml version of the data
-  data_xml = dicttoxml.dicttoxml( data )
-
-  data = renderXMLTree( data_xml, context, imports, filters, strict )
-
-  return data
-
 def renderXMLTree( data_xml , context = {}, imports = None, filters = toNum, strict = False ):
-
+  '''Renders an xml tree.'''
   # get an etree of the data
   data_tree = lxml.etree.fromstring( data_xml )
   # explicitly set the type data for any elements
@@ -187,8 +177,8 @@ def renderXMLTree( data_xml , context = {}, imports = None, filters = toNum, str
   return data
 
 
-def renderDataTree( data, context = DataTree(), spec = DataTree(), imports = [], pre_filters = [], post_filters = [], filters = [], strict = False ):
-
+def renderDataTree( data, imports = [], pre_filters = [], post_filters = [], filters = [], strict = False ):
+  '''Renders a DataTree.'''
   # build the python block for importing the modules listed
   imports_text = ""
   if isinstance( imports, str ):
@@ -237,6 +227,11 @@ def renderDataTree( data, context = DataTree(), spec = DataTree(), imports = [],
       raise RuntimeError(ExpressionErrorMsg % s )
 
   return data
+
+def renderDictTree( data, *args, **kwargs ):
+  '''Renders a dictionary.'''
+  return renderDataTree( DataTree(data), *args, **kwargs )
+
 
 
 

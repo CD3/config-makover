@@ -14,8 +14,8 @@ def test_operations():
                    , 'l2'  : { 'one' : 121 }
                    }
          }
-
   pdata = DataTree( data )
+
 
   assert pdata.get('one') == 1
   assert pdata.get('l1/one') == 11
@@ -66,16 +66,57 @@ def test_spec():
   assert data.get('l1/two','float|int') == 12
   assert data['l1/two','float|int'] == 12
 
+
+  data = DataTree( { 'one' : '1'
+                   , 'two' : '2'
+                   , 'l1'  : { 'one' : '11.1'
+                             , 'two' : '12.2'
+                             , 'l2'  : { 'one' : '121' }
+                             }
+                   } )
+  data.new_spec( '/**', 'type', 'float|int' )
+
+  assert data['one'] == 1
+  assert data['two'] == 2
+  assert data['l1/one'] == 11
+  assert data['l1/two'] == 12
+
+def test_type_casting():
+  data = DataTree( { 'length' : '1 cm'
+                   , 'width'  : '2 inch'
+                   } )
+  data.new_spec( '/**', 'type', 'Q|mag' )
+
+  # print data['length']
+  # print data['width']
+
 def test_units():
 
   data = DataTree({ 'length' : '1 cm'
                    ,'width'  : '2 inch'
                   } )
 
-  # for p in data.get_tippaths():
-    # data.set_spec( data._join(p,'type'), 'units.Quantity' )
+  data.new_spec( '**', 'type', 'Q' )
 
 
-  # print data['length']
-  # print data['width']
+  assert isinstance( data['length'], pint.quantity._Quantity )
+  assert isinstance( data['width'], pint.quantity._Quantity )
 
+  assert data['length'].magnitude == 1
+  assert data.get('length',unit='inch').magnitude == 1/2.54
+  assert data['width'].magnitude == 2
+  assert data.get('width',unit='cm').magnitude == 2*2.54
+
+
+def test_searching():
+  data = { '1' : 1
+         , '2' : 2
+         , '3' : 3
+         , 'l1' : { '1' : 11
+                  , '2' : 12
+                  , 'l1' : { '1' : 111 }
+                  }
+         }
+
+def test_misc():
+  pass

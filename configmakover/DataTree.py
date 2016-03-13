@@ -1,5 +1,18 @@
 import os
 import dpath
+import pint
+
+u = pint.UnitRegistry()
+
+def Q(x):
+  return u.Quantity(x)
+
+def mag(x):
+  if isinstance(x,pint.quantity._Quantity):
+    return x.magnitude
+  return x
+
+
 class DataTree(object):
   '''Simple wrapper for nested dicts that allows accessing dict elements with paths like a filesystem.'''
   def __init__(self, d = dict(), p = '/', s = dict()):
@@ -27,29 +40,55 @@ class DataTree(object):
   def __setitem__(self,k,v):
     return self.set(k,v)
 
-  def get(self,p,typelist=None):
-    path = self._abspath(p)
-    val = dpath.util.get( self.data, path )
+  def _type( self, path ):
+    '''Return the type spec for a path. Returns None if no type exists in the spec.'''
+    try:
+      return dpath.util.get( self.spec, self._join( path, 'type' ) )
+    except:
+      return None
 
-    types = []
-    if typelist is None: 
-      try:
-        typelist = dpath.util.get( self.spec, self._join( path, 'type' ) )
-      except:
-        pass
+  def _unit( self, path ):
+    '''Return the type spec for a path. Returns None if no type exists in the spec.'''
+    try:
+      return dpath.util.get( self.spec, self._join( path, 'unit' ) )
+    except:
+      return None
 
-    if typelist == 'raw':
-      typelist = None
+  def _totype( self, val, typelist ):
+    if typelist == 'raw' or typelist is None:
+      return val
 
-    if not typelist is None:
-      types = typelist.split('|')
-
-    v = val
+    types = typelist.split('|')
     for t in types:
       if isinstance(t, (str,unicode)):
         t = eval(t)
-      v = t(v)
-    val = v
+      val = t(val)
+
+    return val
+
+  def _tounit( self, val, unit ):
+    try:
+      return Q(val).to(unit)
+    except:
+      return val
+
+
+  def has(self,k):
+    '''Returns true if data tree contains key k.'''
+    return len( self.get_paths(k) ) > 0
+
+
+  def get(self,p,type=None,unit=None):
+    def first(*args):
+      for a in args:
+        if not a is None:
+          return a
+
+    path = self._abspath(p)
+    val = dpath.util.get( self.data, path )
+
+    val = self._totype( val, first( type, self._type( path ) ) )
+    val = self._tounit( val, first( unit , self._unit( path ) ) )
 
     return val
 
@@ -60,33 +99,25 @@ class DataTree(object):
     '''Return a DataTree rooted at the path p.'''
     return DataTree( self.data, self._abspath( p )+'/' )
 
-  def set_spec(self,p,v):
-    return dpath.util.new( self.spec, self._abspath(p), v )
+  def set_spec(self,glob,v):
+    dpath.util.new( self.spec, glob, v )
 
-  def get_tippaths(self, glob = '**'):
-    keys = DataTree._get_tippaths( self.data, glob, '/' )
-    return keys
+  def new_spec(self,glob,k,v):
+    for x in dpath.util.search( self.data, self._abspath(glob), afilter=lambda x:True, yielded=True ):
+      self.set_spec( self._join(x[0],k), v )
+      if k == 'unit': # units require the pint quantity type
+        self.set_spec( self._join(x[0],'type'), u.Quantity )
+
+  def get_spec(self,path,k=None):
+    try:
+      if k:
+        k = self._join( path, k )
+      return dpath.util.get( self.spec, k )
+    except:
+      return None
 
 
-  @staticmethod
-  def _get_tippaths( data, glob = '**', separator='/' ):
-    '''Return a list of paths to the tips of a nested dict.'''
-    keys = [ x[0] for x in dpath.util.search( data, glob, separator=separator, yielded=True ) ]
-
-    # keys is a list of all keys in the data tree. we want to get a list of just the tips
-    tipkeys = []
-    for i in range(len(keys)):
-      found = False
-      for j in range(len(keys)):
-        if i == j:
-          continue
-        if keys[j].startswith(keys[i]):
-          found = True
-
-      if not found:
-        tipkeys.append( keys[i] )
-
-    return tipkeys
-
+  def get_paths(self, glob = '**', afilter = lambda x: True):
+    return [ x[0] for x in dpath.util.search( self.data, self._abspath(glob), afilter=lambda x:True, yielded=True ) ]
 
 
