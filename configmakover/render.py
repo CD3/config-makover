@@ -43,7 +43,6 @@ ExpressionErrorMsg = "One or more expressions where not replaced. The first one 
 def renderDictTree( data, context = {}, imports = None, filters = toNum, strict = False ):
   '''Renders a dictionary'''
   
-  print [ x[0] for x in dpath.util.search( data, '**', yielded=True ) ]
   # get xml version of the data
   data_xml = dicttoxml.dicttoxml( data )
 
@@ -211,24 +210,23 @@ def renderDataTree( data, context = DataTree(), spec = DataTree(), imports = [],
   hashes = dict()
   hash =  hashlib.sha1( pickle.dumps(data) ).hexdigest()
   hashes[hash] = hashes.get(hash,0) + 1
-  print
   while hashes.get( hash, 0 ) < 2:
     keys = data.get_tippaths()
     for key in keys:
-      if isinstance( data[key], (str,unicode) ):
-        for f in pre_filters:
-          try:
-            data[key] = f(data[key], key)
-          except:
-            data[key] = f(data[key])
+      for f in pre_filters:
+        try:
+          data[key] = f(data[key,'raw'], key)
+        except:
+          data[key] = f(data[key,'raw'])
 
-        data[key] = tempita.sub( imports_text+data[key], c=data.get_node( data._join( key,'..' ) ) )
+      if isinstance( data[key,'raw'], (str,unicode) ):
+        data[key] = tempita.sub( imports_text+data[key,'raw'], c=data.get_node( data._join( key,'..' ) ) )
 
-        for f in post_filters:
-          try:
-            data[key] = f(data[key], key)
-          except:
-            data[key] = f(data[key])
+      for f in post_filters:
+        try:
+          data[key] = f(data[key,'raw'], key)
+        except:
+          data[key] = f(data[key,'raw'])
 
     hash =  hashlib.sha1( pickle.dumps(data) ).hexdigest()
     hashes[hash] = hashes.get(hash,0) + 1

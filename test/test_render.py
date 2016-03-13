@@ -121,8 +121,8 @@ def test_renderDataTree_multi_ref():
                    ,'three': "{{c['one']}}"
                    ,'four' : "{{c['one'] + c['two']}}"
                    ,'five' : "{{c['four']}}"
-                   ,'six'  : "{{c['three',float] + c['four',float]}}"
-                  } )
+                   ,'six'  : "{{c['three'] + c['four']}}"
+                  })
   for p in data.get_tippaths():
     data.set_spec( data._join(p,'type'), 'float' )
 

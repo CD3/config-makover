@@ -32,11 +32,14 @@ class DataTree(object):
     val = dpath.util.get( self.data, path )
 
     types = []
-    if typelist is None:
+    if typelist is None: 
       try:
         typelist = dpath.util.get( self.spec, self._join( path, 'type' ) )
       except:
-        typelist = None
+        pass
+
+    if typelist == 'raw':
+      typelist = None
 
     if not typelist is None:
       types = typelist.split('|')
