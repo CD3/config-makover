@@ -63,5 +63,19 @@ def test_spec():
   assert data['two'] == 2
   assert data['l1/one'] == 11
   assert data['l1/two'] == 12.2
+  assert data.get('l1/two','float|int') == 12
+  assert data['l1/two','float|int'] == 12
 
+def test_units():
+
+  data = DataTree({ 'length' : '1 cm'
+                   ,'width'  : '2 inch'
+                  } )
+
+  # for p in data.get_tippaths():
+    # data.set_spec( data._join(p,'type'), 'units.Quantity' )
+
+
+  # print data['length']
+  # print data['width']
 

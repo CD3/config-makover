@@ -19,30 +19,34 @@ class DataTree(object):
     return os.path.normpath( path )
 
   def __getitem__(self,k):
-    return self.get(k)
+    if isinstance(k,tuple):
+      return self.get(k[0],k[1])
+    else:
+      return self.get(k)
 
   def __setitem__(self,k,v):
     return self.set(k,v)
 
-  def get(self,p):
+  def get(self,p,typelist=None):
     path = self._abspath(p)
     val = dpath.util.get( self.data, path )
 
     types = []
-    try:
-      types = dpath.util.get( self.spec, self._join( path, 'type' ) )
-      types = types.split('|')
+    if typelist is None:
+      try:
+        typelist = dpath.util.get( self.spec, self._join( path, 'type' ) )
+      except:
+        typelist = None
 
-      # get the data type for this element
-      # multiple types can be given
-      v = val
-      for t in types:
+    if not typelist is None:
+      types = typelist.split('|')
+
+    v = val
+    for t in types:
+      if isinstance(t, (str,unicode)):
         t = eval(t)
-        v = t(v)
-      val = v
-    except:
-      pass
-
+      v = t(v)
+    val = v
 
     return val
 
