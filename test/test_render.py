@@ -7,6 +7,7 @@ sys.path = [moddir] + sys.path
 import pytest
 
 from configmakover.render import *
+from configmakover.DataTree import *
 
 import utils
 #logging.basicConfig( level=logging.DEBUG )
@@ -95,8 +96,8 @@ def test_renderDictTree_multi_ref():
   assert rendered_data['six']  == 2
   assert rendered_data['seven']  == 3
 
-def test_renderPathDict():
-  data = PathDict({ 'one' : 1
+def test_renderDataTree():
+  data = DataTree({ 'one' : 1
                    ,'two' : 2
                    ,'three': "{{c['one']}}"
                    ,'four' : "{{c['one'] + c['two']}}"
@@ -106,9 +107,30 @@ def test_renderPathDict():
                                 ,'four' : '{{c["one"] + c["two"]}}'
                                }
                   } )
-  rendered_data = renderPathDict( data )
+  rendered_data = renderDataTree( data )
 
   assert rendered_data['three'] == str(1)
   assert rendered_data['four']  == str(3)
   assert rendered_data['level1']['three'] == str(11)
   assert rendered_data['level1']['four']  == str(11 + 12)
+
+def test_renderDataTree_multi_ref():
+
+  data = DataTree({ 'one' : '1'
+                   ,'two' : '2'
+                   ,'three': "{{c['one']}}"
+                   ,'four' : "{{c['one'] + c['two']}}"
+                   ,'five' : "{{c['four']}}"
+                   ,'six'  : "{{float(c['three']) + float(c['four'])}}"
+                  } )
+  for p in data.get_tippaths():
+    data.set_spec( data._join(p,'type'), 'float' )
+
+  rendered_data = renderDataTree( data )
+
+  assert rendered_data['one']   == 1
+  assert rendered_data['two']   == 2
+  assert rendered_data['three'] == 1
+  assert rendered_data['four']  == 3
+  assert rendered_data['five']  == 3
+  assert rendered_data['six']   == 4

@@ -27,19 +27,22 @@ class DataTree(object):
   def get(self,p):
     path = self._abspath(p)
     val = dpath.util.get( self.data, path )
+
+    types = []
     try:
+      types = dpath.util.get( self.spec, self._join( path, 'type' ) )
+      types = types.split('|')
+
       # get the data type for this element
       # multiple types can be given
       v = val
-      types = dpath.util.get( self.spec, self._join( path, 'type' ) )
-      types = types.split('|')
       for t in types:
         t = eval(t)
         v = t(v)
       val = v
-    except Exception as e:
-      print e
+    except:
       pass
+
 
     return val
 
@@ -53,16 +56,15 @@ class DataTree(object):
   def set_spec(self,p,v):
     return dpath.util.new( self.spec, self._abspath(p), v )
 
-  def get_tippaths(self):
-    keys = DataTree._gettipkeys( self.data, '/' )
-
+  def get_tippaths(self, glob = '**'):
+    keys = DataTree._get_tippaths( self.data, glob, '/' )
     return keys
 
 
   @staticmethod
-  def _get_tippaths( data,separator='/' ):
+  def _get_tippaths( data, glob = '**', separator='/' ):
     '''Return a list of paths to the tips of a nested dict.'''
-    keys = [ x[0] for x in dpath.util.search( data, '**', separator=separator, yielded=True ) ]
+    keys = [ x[0] for x in dpath.util.search( data, glob, separator=separator, yielded=True ) ]
 
     # keys is a list of all keys in the data tree. we want to get a list of just the tips
     tipkeys = []

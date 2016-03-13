@@ -1,5 +1,6 @@
 from .utils import *
 from .filters import *
+from .DataTree import *
 from tempita import Template
 import yaml
 import dpath
@@ -187,7 +188,7 @@ def renderXMLTree( data_xml , context = {}, imports = None, filters = toNum, str
   return data
 
 
-def renderPathDict( data, context = PathDict(), spec = PathDict(), imports = [], filters = [], strict = False ):
+def renderDataTree( data, context = DataTree(), spec = DataTree(), imports = [], pre_filters = [], post_filters = [], filters = [], strict = False ):
 
   # build the python block for importing the modules listed
   imports_text = ""
@@ -200,30 +201,42 @@ def renderPathDict( data, context = PathDict(), spec = PathDict(), imports = [],
     imports_text += ", ".join( imports )
     imports_text += "\n}}\n"
 
+  # setup filters
+  for f in filters:
+    pre_filters.append( f )
+    post_filters.append( f )
+
   # now render the tree
   # keep rendering until the tree repeats itself
   hashes = dict()
   hash =  hashlib.sha1( pickle.dumps(data) ).hexdigest()
   hashes[hash] = hashes.get(hash,0) + 1
+  print
   while hashes.get( hash, 0 ) < 2:
     keys = data.get_tippaths()
     for key in keys:
       if isinstance( data[key], (str,unicode) ):
+        for f in pre_filters:
+          try:
+            data[key] = f(data[key], key)
+          except:
+            data[key] = f(data[key])
+
         data[key] = tempita.sub( imports_text+data[key], c=data.get_node( data._join( key,'..' ) ) )
+
+        for f in post_filters:
+          try:
+            data[key] = f(data[key], key)
+          except:
+            data[key] = f(data[key])
+
     hash =  hashlib.sha1( pickle.dumps(data) ).hexdigest()
     hashes[hash] = hashes.get(hash,0) + 1
 
-    # # apply filters
-    # applyFiltersToETree( data_tree, filters )
-    # hash = hasher(  lxml.etree.tostring(data_tree) ).hexdigest()
-    # hashes[hash] = hashes.get(hash,0) + 1
-
-    
-  # # get xml of new tree
-  # data_text = lxml.etree.tostring( data_tree )
-
-  # # de-serialize data to nested dict
-  # data = xmldict.xml_to_dict( data_text )
+  if strict:
+    s = CheckForExpressions(data)
+    if s:
+      raise RuntimeError(ExpressionErrorMsg % s )
 
   return data
 
