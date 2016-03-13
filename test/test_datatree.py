@@ -108,6 +108,20 @@ def test_units():
   assert data.get('width',unit='cm').magnitude == 2*2.54
 
 
+
+  data = DataTree({ 'length' : '1 cm'
+                   ,'width'  : '2 inch'
+                  } )
+
+
+  assert data.get('length',unit='cm'  ).magnitude == 1
+  assert data.get('length',unit='inch').magnitude == 1/2.54
+  assert data.get('width', unit='inch').magnitude == 2
+  assert data.get('width', unit='cm'  ).magnitude == 2*2.54
+
+
+
+
 def test_searching():
   data = { '1' : 1
          , '2' : 2

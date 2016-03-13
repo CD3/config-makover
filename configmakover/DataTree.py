@@ -1,6 +1,7 @@
 import os
 import dpath
 import pint
+import __builtin__
 
 u = pint.UnitRegistry()
 
@@ -87,8 +88,8 @@ class DataTree(object):
     path = self._abspath(p)
     val = dpath.util.get( self.data, path )
 
+    val = self._tounit( val, first( unit, self._unit( path ) ) )
     val = self._totype( val, first( type, self._type( path ) ) )
-    val = self._tounit( val, first( unit , self._unit( path ) ) )
 
     return val
 
@@ -105,8 +106,6 @@ class DataTree(object):
   def new_spec(self,glob,k,v):
     for x in dpath.util.search( self.data, self._abspath(glob), afilter=lambda x:True, yielded=True ):
       self.set_spec( self._join(x[0],k), v )
-      if k == 'unit': # units require the pint quantity type
-        self.set_spec( self._join(x[0],'type'), u.Quantity )
 
   def get_spec(self,path,k=None):
     try:
