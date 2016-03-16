@@ -204,19 +204,21 @@ def renderDataTree( data, imports = [], pre_filters = [], post_filters = [], fil
     keys = data.get_paths()
     for key in keys:
       for f in pre_filters:
-        try:
-          data[key] = f(data[key,'raw'], key)
-        except:
+        nargs = len(inspect.getargspec( f ).args)
+        if nargs == 1:
           data[key] = f(data[key,'raw'])
+        if nargs == 2:
+          data[key] = f(data[key,'raw'], key)
 
       if isinstance( data[key,'raw'], (str,unicode) ):
         data[key] = tempita.sub( imports_text+data[key,'raw'], c=data.get_node( data._join( key,'..' ) ) )
 
       for f in post_filters:
-        try:
-          data[key] = f(data[key,'raw'], key)
-        except:
+        nargs = len(inspect.getargspec( f ).args)
+        if nargs == 1:
           data[key] = f(data[key,'raw'])
+        if nargs == 2:
+          data[key] = f(data[key,'raw'], key)
 
     hash =  hashlib.sha1( pickle.dumps(data) ).hexdigest()
     hashes[hash] = hashes.get(hash,0) + 1

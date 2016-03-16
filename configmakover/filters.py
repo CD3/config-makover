@@ -5,20 +5,16 @@ def applyFiltersToDict( data, filters ):
   '''Applys a set of given functions to all elements in a data tree. The function called on each element is responsible for
      handling any errors.'''
   it = iterator(filters)
-  if not it:
-    filters = [filters]
-
-  it = iterator(filters)
   for i in it:
-    filter = filters[i]
-    if filter is None:
+    f = filters[i]
+    if f is None:
       continue
-    nargs = len(inspect.getargspec( filter ).args)
-    for item in dpath.util.search( data, "**", yielded=True, separator='.' ):
+    nargs = len(inspect.getargspec( f ).args)
+    for item in dpath.util.search( data, "**", yielded=True, afilter=lambda x:True, separator='/' ):
       if nargs == 1:
-        dpath.util.set( data, item[0], filter(item[1]), separator='.' )
+        dpath.util.set( data, item[0], f(item[1]), separator='/' )
       if nargs == 2:
-        dpath.util.set( data, item[0], filter(item[1], item[0]), separator='.' )
+        dpath.util.set( data, item[0], f(item[1], item[0]), separator='/' )
 
   return data
 

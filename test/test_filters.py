@@ -12,7 +12,6 @@ from configmakover.filters import *
 import utils
 #logging.basicConfig( level=logging.DEBUG )
 
-@pytest.mark.xfail
 def test_level_filter():
   text = '''
   var : 1
@@ -29,17 +28,16 @@ def test_level_filter():
   '''
 
   def filter_on_layer( val, key ):
-    if not isinstance(val, dict):
-      if len( key.split('.') ) % 2 == 0:
-        return str(val)
-      else:
-        return float(str(val))
+    if len( key.split('/') ) % 2 == 0:
+      return float(str(val))
+    else:
+      return str(val)
 
     return val
 
-  data = readConfig( text, render_filters=filter_on_layer )
-  logging.debug( "RESULT" )
-  logging.debug( data )
+  data = readConfig( text, post_filters=[filter_on_layer] )
+  # logging.debug( "RESULT" )
+  # logging.debug( data )
 
   assert isinstance( data['var'], str)
   assert isinstance( data['nest']['var'], float)
@@ -49,7 +47,6 @@ def test_level_filter():
   assert isinstance( data['nest']['nest']['nest']['nest']['nest']['var'], float)
 
 
-@pytest.mark.xfail
 def test_multiple_filters():
   text = '''
   num : 1
@@ -66,26 +63,17 @@ def test_multiple_filters():
   '''
 
   def set_type( val, key ):
-    if isinstance( val, dict ):
-      return val
+    if key.endswith('num'):
+      return int(val)
     
-    if isinstance( val, list ):
-      return val
-
-    if isinstance(val,unicode):
-      val = str(val)
-
-    if key == 'num' and isinstance(val,str):
-      return float(val)
-    
-    if key == 'str':
+    if key.endswith('str'):
       return str(val)
 
     return val
 
   def plus_one( val ):
     try:
-      if val < 10:
+      if val < 3.5:
         return val + 1
     except:
       return val
@@ -93,9 +81,27 @@ def test_multiple_filters():
     return val
 
 
-  data = readConfig( text, render_filters=[set_type,plus_one] )
-  logging.debug( "RESULT" )
-  logging.debug( data )
+  data = readConfig( text, post_filters=[set_type,plus_one] )
+  # logging.debug( "RESULT" )
+  # logging.debug( data )
+
+  assert isinstance(data['num'], int)
+  assert            data['num'] == 2
+
+  assert isinstance(data['nest']['str'], str)
+  assert            data['nest']['str'] == '2'
+
+  assert isinstance(data['nest']['nest']['num'], int)
+  assert            data['nest']['nest']['num'] == 4
+
+  assert isinstance(data['nest']['nest']['nest']['str'], str)
+  assert            data['nest']['nest']['nest']['str'] == '4'
+
+  assert isinstance(data['nest']['nest']['nest']['nest']['num'], int)
+  assert            data['nest']['nest']['nest']['nest']['num'] == 5
+
+  assert isinstance(data['nest']['nest']['nest']['nest']['nest']['str'], str)
+  assert            data['nest']['nest']['nest']['nest']['nest']['str'] == '6'
 
 
 def test_list_generation():
@@ -107,11 +113,7 @@ def test_list_generation():
       var : 7,8,9
   '''
 
-  data = readConfig( text, post_filters=expand_list)
-
-  logging.debug( "RESULT" )
-  logging.debug( data )
-
+  data = readConfig( text, post_filters=[expand_list])
 
   assert isinstance( data, dict)
   assert isinstance( data['var'], list)
@@ -119,6 +121,35 @@ def test_list_generation():
   assert isinstance( data['nest']['var'], list)
   assert isinstance( data['nest']['nest'], dict)
   assert isinstance( data['nest']['nest']['var'], list)
+  
+  assert data['var'][0] == '1'
+  assert data['var'][1] == '2'
+  assert data['var'][2] == '3'
+  assert data['nest']['var'][0] == '4'
+  assert data['nest']['var'][1] == '5'
+  assert data['nest']['var'][2] == '6'
+  assert data['nest']['nest']['var'][0] == '7'
+  assert data['nest']['nest']['var'][1] == '8'
+  assert data['nest']['nest']['var'][2] == '9'
+
+  data = readConfig( text, post_filters=[expand_list,lambda x : int(x)])
+
+  assert isinstance( data, dict)
+  assert isinstance( data['var'], list)
+  assert isinstance( data['nest'], dict)
+  assert isinstance( data['nest']['var'], list)
+  assert isinstance( data['nest']['nest'], dict)
+  assert isinstance( data['nest']['nest']['var'], list)
+  
+  assert data['var'][0] == 1
+  assert data['var'][1] == 2
+  assert data['var'][2] == 3
+  assert data['nest']['var'][0] == 4
+  assert data['nest']['var'][1] == 5
+  assert data['nest']['var'][2] == 6
+  assert data['nest']['nest']['var'][0] == 7
+  assert data['nest']['nest']['var'][1] == 8
+  assert data['nest']['nest']['var'][2] == 9
 
 def test_none_filters():
   text = '''
@@ -130,67 +161,12 @@ def test_none_filters():
   '''
 
 
-  data = readConfig( text, render_filters=None )
+  data = readConfig( text, render_filters=None)
 
-  logging.debug( "RESULT" )
-  logging.debug( data )
+  # logging.debug( "RESULT" )
+  # logging.debug( data )
 
   assert data['var'] == 1
   assert data['nest']['var'] == 2
   assert data['nest']['nest']['var'] == 3
-
-def test_pre_post_filters():
-  text = '''
-  var1 : '1'
-  var2 : '{{l.var1 + 1}}'
-  nest :
-    var1 : '2'
-    var2 : '{{l.var1 + 1}}'
-    nest :
-      var1 : '3'
-      var2 : '{{l.var1 + 1}}'
-  '''
-
-
-  def num(val):
-    if isContainer(val):
-      return val
-
-    try:
-      return float(val)
-    except:
-      return val
-
-
-  with pytest.raises(RuntimeError):
-    data = readConfig( text , render_filters=None)
-
-  data = readConfig( text , pre_filters=num, render_filters=None)
-
-  logging.debug( "RESULT" )
-  logging.debug( data )
-
-  assert data['var1'] == 1
-  assert data['var2'] == '2.0'
-  assert data['nest']['var1'] == 2
-  assert data['nest']['var2'] == '3.0'
-  assert data['nest']['nest']['var1'] == 3
-  assert data['nest']['nest']['var2'] == '4.0'
-
-
-
-  data = readConfig( text , pre_filters=num, post_filters=num, render_filters=None)
-
-  logging.debug( "RESULT" )
-  logging.debug( data )
-
-  assert data['var1'] == 1
-  assert data['var2'] == 2
-  assert data['nest']['var1'] == 2
-  assert data['nest']['var2'] == 3
-  assert data['nest']['nest']['var1'] == 3
-  assert data['nest']['nest']['var2'] == 4
-
-
-
 

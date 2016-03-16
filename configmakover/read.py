@@ -6,9 +6,9 @@ import re
 def readConfig( text = None, parser = yaml.load
                            , preprocess = True
                            , render = True
-                           , pre_filters = None
-                           , render_filters = None
-                           , post_filters = None
+                           , pre_filters = []
+                           , render_filters = []
+                           , post_filters = []
                            , ignore_expression_errors = False
                            , filename = None):
   '''
@@ -34,6 +34,13 @@ def readConfig( text = None, parser = yaml.load
 
   '''
 
+  if pre_filters is None:
+    pre_filters = []
+  if render_filters is None:
+    render_filters = []
+  if post_filters is None:
+    post_filters = []
+
   # if a filename is given, read it into the text string
   if filename:
     with open(filename) as f:
@@ -58,16 +65,14 @@ def readConfig( text = None, parser = yaml.load
   data = parser( text )
 
   # if pre filters where given, apply them
-  if not pre_filters is None:
-    data = applyFiltersToDict(data, pre_filters)
+  data = applyFiltersToDict(data, pre_filters)
 
   # if render is set, we want to render the data tree
   if render:
     data = renderDictTree( data, imports=imports, filters=render_filters, strict=not ignore_expression_errors )
 
   # if post filters where given, apply them
-  if not post_filters is None:
-    data = applyFiltersToDict(data, post_filters)
+  data = applyFiltersToDict(data, post_filters)
   
   return data
 
