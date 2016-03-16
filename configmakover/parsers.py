@@ -2,6 +2,7 @@ from .utils import *
 
 import StringIO
 import ConfigParser
+import dpath
 
 class ini:
 
@@ -56,7 +57,7 @@ class keyval:
 
   @staticmethod
   def dump( data ):
-    keys = sorted( gettipkeys(data) )
+    keys = sorted([ x[0] for x in dpath.util.search( data, '**', afilter=lambda x:True, yielded=True ) ])
 
     text = ""
     for i in range(len(keys)):

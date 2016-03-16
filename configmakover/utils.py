@@ -85,7 +85,3 @@ class ETWrap:
 
   __getitem__ = __getattr__
   __call__    = __getattr__
-
-def gettipkeys( data,separator='/' ):
-  return DataTree._get_tippaths( data, separator )
-
