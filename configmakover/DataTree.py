@@ -13,7 +13,6 @@ def mag(x):
     return x.magnitude
   return x
 
-
 class DataTree(object):
   '''Simple wrapper for nested dicts that allows accessing dict elements with paths like a filesystem.'''
   def __init__(self, d = dict(), p = '/', s = dict()):
@@ -31,15 +30,6 @@ class DataTree(object):
       path = self._join( self.root, p )
 
     return os.path.normpath( path )
-
-  def __getitem__(self,k):
-    if isinstance(k,tuple):
-      return self.get(k[0],k[1])
-    else:
-      return self.get(k)
-
-  def __setitem__(self,k,v):
-    return self.set(k,v)
 
   def _type( self, path ):
     '''Return the type spec for a path. Returns None if no type exists in the spec.'''
@@ -59,7 +49,10 @@ class DataTree(object):
     if typelist == 'raw' or typelist is None:
       return val
 
-    types = typelist.split('|')
+    if isinstance(typelist, (str,unicode) ):
+      types = typelist.split('|')
+    else:
+      types = [typelist]
     for t in types:
       if isinstance(t, (str,unicode)):
         t = eval(t)
@@ -73,11 +66,18 @@ class DataTree(object):
     except:
       return val
 
+  def __getitem__(self,k):
+    if isinstance(k,tuple):
+      return self.get(k[0],k[1])
+    else:
+      return self.get(k)
+
+  def __setitem__(self,k,v):
+    return self.set(k,v)
 
   def has(self,k):
     '''Returns true if data tree contains key k.'''
     return len( self.get_paths(k) ) > 0
-
 
   def get(self,p,type=None,unit=None):
     def first(*args):
@@ -100,12 +100,12 @@ class DataTree(object):
     '''Return a DataTree rooted at the path p.'''
     return DataTree( self.data, self._abspath( p )+'/' )
 
-  def set_spec(self,glob,v):
-    dpath.util.new( self.spec, glob, v )
-
   def new_spec(self,glob,k,v):
     for x in dpath.util.search( self.data, self._abspath(glob), afilter=lambda x:True, yielded=True ):
       self.set_spec( self._join(x[0],k), v )
+
+  def set_spec(self,glob,v):
+    dpath.util.new( self.spec, glob, v )
 
   def get_spec(self,path,k=None):
     try:
@@ -114,7 +114,6 @@ class DataTree(object):
       return dpath.util.get( self.spec, k )
     except:
       return None
-
 
   def get_paths(self, glob = '**', afilter = lambda x: True):
     return [ x[0] for x in dpath.util.search( self.data, self._abspath(glob), afilter=lambda x:True, yielded=True ) ]

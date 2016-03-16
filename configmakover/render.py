@@ -201,7 +201,7 @@ def renderDataTree( data, imports = [], pre_filters = [], post_filters = [], fil
   hash =  hashlib.sha1( pickle.dumps(data) ).hexdigest()
   hashes[hash] = hashes.get(hash,0) + 1
   while hashes.get( hash, 0 ) < 2:
-    keys = data.get_tippaths()
+    keys = data.get_paths()
     for key in keys:
       for f in pre_filters:
         try:
@@ -230,7 +230,7 @@ def renderDataTree( data, imports = [], pre_filters = [], post_filters = [], fil
 
 def renderDictTree( data, *args, **kwargs ):
   '''Renders a dictionary.'''
-  return renderDataTree( DataTree(data), *args, **kwargs )
+  return renderDataTree( DataTree(data), *args, **kwargs ).data
 
 
 
