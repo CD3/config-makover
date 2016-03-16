@@ -20,28 +20,28 @@ import math
   var1 : 1
   var2 : some string
   var3 : 3
-  var4 : '{{l.var3 + math.pi + 2}}'
-  var5 : '{{l.var4 + 2.0}}'
+  var4 : "{{c['var3'] + math.pi + 2}}"
+  var5 : "{{c['var4'] + 2.0}}"
   nest1 : &nest
     var1 : 11
-    var2 : '{{l.var3 + 12}}'
-    var3 : '{{l.var1 + 12}}'
-    var4 : '{{l.var3 + 12}}'
-    var5 : '{{l._up.nest1.var3 + 12}}'
+    var2 : "{{c['var3'] + 12}}"
+    var3 : "{{c['var1'] + 12}}"
+    var4 : "{{c['var3'] + 12}}"
+    var5 : "{{c['../nest1/var3'] + 12}}"
     list1 :
       - 01
-      - '{{l._0}}'
+      - "{{c['0']}}"
       - 03
     nest2 :
       var1 : 111
       var2 : 112
-      var3 : '{{l.var1}}'
-      var4 : '{{g.var1}}'
-      var5 : '{{g.nest1.var1}}'
+      var3 : "{{c['var1']}}"
+      var4 : "{{c['/var1']}}"
+      var5 : "{{c['/nest1/var1']}}"
   '''
 
 
-  data = readConfig( data, render_filters=toNum )
+  data = readConfig( data, render_filters=[toNum] )
   logging.debug( "RESULT")
   logging.debug( data )
 
@@ -55,6 +55,9 @@ import math
   assert data['nest1']['var3'] == 11 + 12
   assert data['nest1']['var4'] == 11 + 12 + 12
   assert data['nest1']['var5'] == 11 + 12 + 12
+  assert data['nest1']['list1'][0] == 1
+  assert data['nest1']['list1'][1] == 1
+  assert data['nest1']['list1'][2] == 3
   assert data['nest1']['nest2']['var1'] == 111
   assert data['nest1']['nest2']['var2'] == 112
   assert data['nest1']['nest2']['var3'] == 111
@@ -69,20 +72,20 @@ import math
   var1 : 1
   var2 : some string
   var3 : 3
-  var4 : '{{l.var3 + math.pi + 2}}'
-  var5 : '{{l.var4 + 2.0}}'
+  var4 : '{{c["var3"] + math.pi + 2}}'
+  var5 : '{{c["var4"] + 2.0}}'
   nest1 : &nest
     var1 : 11
-    var2 : '{{l.var3 + 12}}'
-    var3 : '{{l.var1 + 12}}'
-    var4 : '{{l.var3 + 12}}'
-    var5 : '{{l._up.nest1.var3 + 12}}'
+    var2 : '{{c["var3"] + 12}}'
+    var3 : '{{c["var1"] + 12}}'
+    var4 : '{{c["var3"] + 12}}'
+    var5 : '{{c["../nest1/var3"] + 12}}'
     nest2 :
       var1 : 111
       var2 : 112
-      var3 : '{{l.var1}}'
-      var4 : '{{g.var1}}'
-      var5 : '{{g.nest1.var1}}'
+      var3 : '{{c["var1"]}}'
+      var4 : '{{c["/var1"]}}'
+      var5 : '{{c["/nest1/var1"]}}'
   nest2 :
     << : *nest
   nest3 :
@@ -104,7 +107,7 @@ import math
   '''
 
 
-  data = readConfig( data, render_filters = toNum )
+  data = readConfig( data, render_filters = [toNum] )
 
   assert data['var1'] == 1
   assert data['var2'] == 'some string'
@@ -144,7 +147,7 @@ def test_passthrough():
   '''
 
 
-  data = dict2bunch( readConfig( data, render_filters=toNum ) )
+  data = dict2bunch( readConfig( data, render_filters=[toNum] ) )
 
   assert data.grid.x.min == 0
   assert data.grid.x.max == 10
@@ -168,15 +171,15 @@ import math
     x:
       min : 0
       max : 10
-      N   : '{{int( (l("max") - l("min"))/g("res") )}}'
+      N   : '{{ (c["max",int] - c["min",int])/c["/res"] }}'
     y:
       min : 0
-      max : '{{2*l("../x/max")}}'
-      N   : '{{int( (l("max") - l("min"))/g("res") )}}'
+      max : '{{2*c["../x/max",float]}}'
+      N   : '{{ (c["max",int] - c["min",int])/c["/res"] }}'
     z:
       min : 0
-      max : '{{2*float(l._up.y.max)}}'
-      N   : '{{ (l.max - l.min)/g.res }}'
+      max : '{{2*c["../y/max",float]}}'
+      N   : '{{ (c["max",int] - c["min",int])/c["/res"] }}'
   time:
     start : 0
     stop : {{math.pow(10,2)}}
@@ -184,7 +187,7 @@ import math
   '''
 
 
-  data = dict2bunch( readConfig( data, render_filters=toNum ) )
+  data = dict2bunch( readConfig( data, render_filters=[toNum] ) )
 
   assert data.grid.x.min == 0
   assert data.grid.x.max == 10

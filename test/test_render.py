@@ -25,6 +25,7 @@ def test_renderDictTree_simple():
          }
 
   rendered_data = renderDictTree( data )
+  applyFiltersToDict( data, [lambda x : str(x)] )
 
   assert rendered_data['three'] == '1'
   assert rendered_data['four']  == '3'
@@ -45,6 +46,7 @@ def test_renderDictTree_missing_var():
                       }
          }
   rendered_data = renderDictTree( data )
+  applyFiltersToDict( data, [lambda x : str(x)] )
 
   assert rendered_data['three'] == str(1)
   assert rendered_data['four']  == str(3)
@@ -57,7 +59,8 @@ def test_renderDictTree_imports():
           ,'var2' : '{{numpy.sqrt(2)}}'
           ,'var3' : '{{c["var1","float"] + math.pi}}'
          }
-  rendered_data = renderDictTree( data, imports = ['math','numpy'] )
+  rendered_data = renderDictTree( data, imports=['math','numpy'] )
+  applyFiltersToDict( data,[lambda x : float(x)] )
 
   import math, numpy
   assert utils.close( rendered_data['var1'], math.sqrt(2)  )
@@ -69,7 +72,7 @@ def test_renderDictTree_throw_on_undefined():
   data = { 'var1' : '{{missing}}' }
 
   with pytest.raises(RuntimeError):
-    rendered_data = renderDictTree( data , strict=True )
+    rendered_data = renderDictTree( data, strict=True )
 
 def test_renderDictTree_multi_ref():
   data = { 'one' : 1
@@ -81,6 +84,7 @@ def test_renderDictTree_multi_ref():
           ,'seven': '{{c["six",int] + 1}}'
          }
   rendered_data = renderDictTree( data )
+  applyFiltersToDict( data, [lambda x : str(x)] )
 
   assert rendered_data['two'] == str(1)
   assert rendered_data['three']  == str(1)
