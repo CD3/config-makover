@@ -18,15 +18,8 @@ def test_quantity_support():
   material/1/density = 1500 g/m^3
   material/1/thickness  = 2 mm
   material/1/specheat = 1 cal/g/degK
+  rmax = 11
   '''
-
-  spec = {
-      'material/**/density': { 'unit' : 'g/cm^3', 'type' : 'mag' }
-     ,'material/**/thickness': { 'unit' : 'cm', 'type' : 'mag' }
-     ,'material/**/specheat': { 'unit' : 'J/g/degK', 'type' : 'mag' }
-     ,'zmin' : {'unit': 'cm', 'type' : 'mag'}
-     ,'zmax' : {'unit': 'cm', 'type' : 'mag'}
-     }
 
   spec = '''
       'material/**/density':
@@ -44,8 +37,10 @@ def test_quantity_support():
       'zmax' :
         'unit' : 'cm'
         'type' : 'mag'
+      'rmax' :
+        'unit' : 'cm'
+        'type' : 'mag'
         '''
-  print yaml.load(spec)
 
   data = readConfig( text, parser=lambda x : keyval.load(x,separator='/'), spec=yaml.load(spec), return_DataTree=True )
 
@@ -59,3 +54,5 @@ def test_quantity_support():
   assert utils.close(data['material/1/density'], 1500./100**3)
   assert utils.close(data['material/1/thickness'], 0.2)
   assert utils.close(data['material/1/specheat'], 4.182)
+
+  assert data['rmax'] == 11

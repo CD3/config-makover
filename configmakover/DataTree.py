@@ -62,8 +62,12 @@ class DataTree(object):
     return val
 
   def _tounit( self, val, unit ):
+    q = Q(val)
     try:
-      return Q(val).to(unit)
+      q = Q(val)
+      if q.units == u.dimensionless:
+        q = q * Q(unit)
+      return q.to(unit)
     except:
       return val
 
