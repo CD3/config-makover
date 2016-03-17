@@ -53,6 +53,7 @@ class DataTree(object):
       types = typelist.split('|')
     else:
       types = [typelist]
+
     for t in types:
       if isinstance(t, (str,unicode)):
         t = eval(t)

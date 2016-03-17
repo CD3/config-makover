@@ -10,6 +10,8 @@ def readConfig( text = None, parser = yaml.load
                            , render_filters = []
                            , post_filters = []
                            , ignore_expression_errors = False
+                           , spec = None
+                           , return_DataTree = False
                            , filename = None):
   '''
   Read string (or file) containing configuration data into a data tree.
@@ -30,7 +32,9 @@ def readConfig( text = None, parser = yaml.load
 
   :param post_filters: A set of functions to call on each entry of the data tree after rendering is complete.
 
-  :param filename: Configuration filename. If given, ``text`` parameter is ignored
+  :param spec: A dict containing spec information for the data.
+
+  :param filename: Configuration filename. If given, ``text`` parameter is ignored.
 
   '''
 
@@ -62,19 +66,27 @@ def readConfig( text = None, parser = yaml.load
     text = t.substitute()
 
   # read the data from the string into a tree
-  data = parser( text )
+  data = DataTree(parser( text ))
+
+  if spec:
+    for k in spec:
+      for kk in spec[k]:
+        data.new_spec( k, kk, spec[k][kk] )
 
   # if pre filters where given, apply them
-  data = applyFiltersToDict(data, pre_filters)
+  data = applyFiltersToDataTree(data, pre_filters)
 
   # if render is set, we want to render the data tree
   if render:
-    data = renderDictTree( data, imports=imports, filters=render_filters, strict=not ignore_expression_errors )
+    data = renderDataTree( data, imports=imports, filters=render_filters, strict=not ignore_expression_errors )
 
   # if post filters where given, apply them
-  data = applyFiltersToDict(data, post_filters)
+  data = applyFiltersToDataTree(data, post_filters)
   
-  return data
+  if return_DataTree:
+    return data
+  else:
+    return data.data
 
 
 readSchema = readConfig

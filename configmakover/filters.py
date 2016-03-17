@@ -2,7 +2,7 @@ from .utils import *
 import lxml.etree
 
 def applyFiltersToDict( data, filters ):
-  '''Applys a set of given functions to all elements in a data tree. The function called on each element is responsible for
+  '''Applys a set of given functions to all elements in a nested dict. The function called on each element is responsible for
      handling any errors.'''
   it = iterator(filters)
   for i in it:
@@ -17,6 +17,43 @@ def applyFiltersToDict( data, filters ):
         dpath.util.set( data, item[0], f(item[1], item[0]), separator='/' )
 
   return data
+
+def applyFiltersToDataTree( data, filters ):
+  '''Applys a set of given functions to all elements in a DataTree. The function called on each element is responsible for
+     handling any errors.'''
+  it = iterator(filters)
+  for i in it:
+    f = filters[i]
+    if f is None:
+      continue
+    nargs = len(inspect.getargspec( f ).args)
+    for item in dpath.util.search( data.data, "**", yielded=True, afilter=lambda x:True, separator='/' ):
+      if nargs == 1:
+        dpath.util.set( data.data, item[0], f(item[1]), separator='/' )
+      if nargs == 2:
+        dpath.util.set( data.data, item[0], f(item[1], item[0]), separator='/' )
+      if nargs == 3:
+        dpath.util.set( data.data, item[0], f(item[1], item[0], data.spec), separator='/' )
+
+  return data
+
+def applyFiltersToDict( data, filters ):
+  '''Applys a set of given functions to all elements in a nested dict. The function called on each element is responsible for
+     handling any errors.'''
+  it = iterator(filters)
+  for i in it:
+    f = filters[i]
+    if f is None:
+      continue
+    nargs = len(inspect.getargspec( f ).args)
+    for item in dpath.util.search( data, "**", yielded=True, afilter=lambda x:True, separator='/' ):
+      if nargs == 1:
+        dpath.util.set( data, item[0], f(item[1]), separator='/' )
+      if nargs == 2:
+        dpath.util.set( data, item[0], f(item[1], item[0]), separator='/' )
+
+  return data
+
 
 def applyFiltersToETree( data_tree, filters ):
   '''Apply filters to etree'''
@@ -33,6 +70,8 @@ def applyFiltersToETree( data_tree, filters ):
         if filter is None:
           continue
         filter( e )
+
+
 
 
 def isContainer( val ):
