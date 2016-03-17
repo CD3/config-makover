@@ -4,6 +4,7 @@ import pint
 import __builtin__
 
 u = pint.UnitRegistry()
+u.define( 'percent = 0.01 radian = %' )
 
 def Q(x):
   return u.Quantity(x)
@@ -62,11 +63,10 @@ class DataTree(object):
     return val
 
   def _tounit( self, val, unit ):
-    q = Q(val)
     try:
       q = Q(val)
       if q.units == u.dimensionless:
-        q = q * Q(unit)
+        q = Q(str(val) + " " + str(unit))
       return q.to(unit)
     except:
       return val

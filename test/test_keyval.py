@@ -19,6 +19,7 @@ def test_quantity_support():
   material/1/thickness  = 2 mm
   material/1/specheat = 1 cal/g/degK
   rmax = 11
+  ratio = 40 percent
   '''
 
   spec = '''
@@ -40,6 +41,9 @@ def test_quantity_support():
       'rmax' :
         'unit' : 'cm'
         'type' : 'mag'
+      'ratio' :
+        'unit' : 'dimensionless'
+        'type' : 'mag'
         '''
 
   data = readConfig( text, parser=lambda x : keyval.load(x,separator='/'), spec=yaml.load(spec), return_DataTree=True )
@@ -56,3 +60,4 @@ def test_quantity_support():
   assert utils.close(data['material/1/specheat'], 4.182)
 
   assert data['rmax'] == 11
+  assert data['ratio'] == 0.4

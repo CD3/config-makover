@@ -1,4 +1,5 @@
 from .utils import *
+from .DataTree import *
 
 import StringIO
 import ConfigParser
@@ -57,14 +58,26 @@ class keyval:
 
   @staticmethod
   def dump( data ):
-    keys = sorted([ x[0] for x in dpath.util.search( data, '**', afilter=lambda x:True, yielded=True ) ])
+    if isinstance(data, DataTree):
+      keys = sorted(data.get_paths())
 
-    text = ""
-    for i in range(len(keys)):
-      k = keys[i]
-      text += k
-      text += " = "
-      text += str( dpath.util.get( data, k ) )
-      text += "\n"
+      text = ""
+      for i in range(len(keys)):
+        k = keys[i]
+        text += k
+        text += " = "
+        text += str( data[k] )
+        text += "\n"
+
+    else:
+      keys = sorted([ x[0] for x in dpath.util.search( data, '**', afilter=lambda x:True, yielded=True ) ])
+
+      text = ""
+      for i in range(len(keys)):
+        k = keys[i]
+        text += k
+        text += " = "
+        text += str( dpath.util.get( data, k ) )
+        text += "\n"
 
     return text
