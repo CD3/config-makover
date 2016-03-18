@@ -61,3 +61,38 @@ def test_quantity_support():
 
   assert data['rmax'] == 11
   assert data['ratio'] == 0.4
+
+
+
+  text = '''
+  zmin = 0 cm
+  zmax = 1 m
+  rmax = 11
+  ratio = 40 percent
+  '''
+
+  spec = '''
+      'zmin' :
+        'unit': 'cm'
+      'zmax' :
+        'unit' : 'cm'
+      'rmax' :
+        'unit' : 'cm'
+      'ratio' :
+        'unit' : 'dimensionless'
+        '''
+
+  def toMag( v ):
+    try:
+      return v.magnitude
+    except:
+      return v
+
+  data = readConfig( text, parser=lambda x : keyval.load(x,separator='/'), spec=yaml.load(spec), post_filters=[toMag], return_DataTree=True )
+
+
+
+  assert data['zmin'] == 0
+  assert data['zmax'] == 100
+  assert data['rmax'] == 11
+  assert data['ratio'] == 0.4
