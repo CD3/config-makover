@@ -147,17 +147,17 @@ def test_passthrough():
   '''
 
 
-  data = dict2bunch( readConfig( data, render_filters=[toNum] ) )
+  data = readConfig( data, render_filters=[toNum] )
 
-  assert data.grid.x.min == 0
-  assert data.grid.x.max == 10
-  assert data.grid.x.N   == 100
-  assert data.grid.y.min == 0
-  assert data.grid.y.max == 20
-  assert data.grid.y.N   == 200
-  assert data.time.start == 0
-  assert data.time.stop  == 10
-  assert data.time.dt    == 0.001
+  assert data['grid']['x']['min'] == 0
+  assert data['grid']['x']['max'] == 10
+  assert data['grid']['x']['N']   == 100
+  assert data['grid']['y']['min'] == 0
+  assert data['grid']['y']['max'] == 20
+  assert data['grid']['y']['N']   == 200
+  assert data['time']['start']    == 0
+  assert data['time']['stop']     == 10
+  assert data['time']['dt']       == 0.001
 
 def test_physicsy():
   '''test a config typical of physics simulations'''
@@ -187,18 +187,18 @@ import math
   '''
 
 
-  data = dict2bunch( readConfig( data, render_filters=[toNum] ) )
+  data = readConfig( data, render_filters=[toNum], return_DataTree=True )
 
-  assert data.grid.x.min == 0
-  assert data.grid.x.max == 10
-  assert data.grid.x.N   == 10000
-  assert data.grid.y.min == 0
-  assert data.grid.y.max == 20
-  assert data.grid.y.N   == 20000
-  assert data.grid.z.min == 0
-  assert data.grid.z.max == 40
-  assert data.grid.z.N   == 40000
-  assert data.time.start == 0
-  assert data.time.stop  == 100
-  assert data.time.dt    == 0.001
+  assert data['/grid/x/min'] == 0
+  assert data['/grid/x/max'] == 10
+  assert data['/grid/x/N']   == 10000
+  assert data['/grid/y/min'] == 0
+  assert data['/grid/y/max'] == 20
+  assert data['/grid/y/N']   == 20000
+  assert data['/grid/z/min'] == 0
+  assert data['/grid/z/max'] == 40
+  assert data['/grid/z/N']   == 40000
+  assert data['/time/start'] == 0
+  assert data['/time/stop']  == 100
+  assert data['/time/dt']    == 0.001
 
