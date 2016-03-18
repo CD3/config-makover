@@ -14,6 +14,8 @@ be automatically calculated from another parameter). It has the following featur
   - Recursive parameter substitution. Configuration data is stored in a tree and parameter substitution occurs
     within branches of the tree.
   - Parameter calculation. Configuration data can be automatically calculated using Python expressions.
+  - Support for quantities. `config-makover` uses `pint` to allow configuration data to be specified in arbitrary units
+    and converted to the units that your application expects.
   - It is file format agnostic. `config-makover` does not parse configuration files. It relies on a "loader".
     If you have a function that can take a string contining the text of your configuration file and return
     a configuration tree (nested dict and list) then you can use config-makeover.
@@ -51,14 +53,14 @@ adds the power of Tempita Expressions to your YAML file so you can do something 
     var1 : 1
     var2 : some string
     var3 : 3
-    var4 : {{var3 + math.pi + 2}}
-    var5 : {{var4 + 2.0}}
+    var4 : {{c['var3'] + math.pi + 2}}
+    var5 : {{c['var4'] + 2.0}}
     nest1 :
       var1 : 11
-      var2 : {{var3 + 12}}
-      var3 : {{var1 + 12}}
-      var4 : {{var3 + 12}}
-      var5 : {{nest1['var3'] + 12}}
+      var2 : {{c['var3'] + 12}}
+      var3 : {{c['var1'] + 12}}
+      var4 : {{c['var3'] + 12}}
+      var5 : {{c['/nest1/var3'] + 12}}
     '''
 
 
@@ -67,6 +69,8 @@ adds the power of Tempita Expressions to your YAML file so you can do something 
 
 The YAML configuration file is loaded into a nested dictionary and then ran through a Tempita Template with itself as a Context. The result
 is that you can reference the value of other parameters in the configuration file to set the value of a parameter.
+The context is passed to Tempita as a `DataTree` named "`c`". A `DataTree` is a lightweight wrapper class around a nested `dict` that allows elements
+to be accessed with a path syntax. Think of a `DataTree` as a view on top of a `dict` that adds a few convienent operations.
 
 This is extremely useful if you write code that does numerical calculations, like a physics simulation.
 Consider the following configuration for a physics simulation that solves the 2D heat equation using a Finite-Difference method. You might have a
@@ -95,39 +99,43 @@ configuration parameter, or 2) give you configuration file a makeover with `conf
       x:
         min : 0
         max : 10
-        N   : {{int( (max - min)/0.1 )}}
+        N   : {{(c['max'] - c['min'])/0.1 )}}
       y:
         min : 0
         max : 20
-        N   : {{int( (max - min)/0.1 )}}
+        N   : {{(c['max'] - c['min'])/0.1 )}}
     time:
       start : 0
       stop : 10
       dt : 0.001
 
 If you chose to modify your code to a accept a resolution parameter, you would have to write logic to check which parameter was specified, N or dx. But what
-if both where given? By using `config-makover`, you keep your configuration logic simple while having power to create configurations that auto-compute
+if both where given? By using `config-makover`, you keep your configuration logic in your application simple while having power to create configurations that auto-compute
 parameter values. What if you want the x and y resolution to be the same, but you would like to be able to easily change it?
 
     # heat solver configuration
-    {{py:
-      res = 0.001
-    }}
     grid:
+      res : 0.001
       x:
         min : 0
         max : 10
-        N   : {{int( (max - min)/res )}}
+        N   : {{(c['max'] - c['min'])/c['../res']}}
       y:
         min : 0
         max : 20
-        N   : {{int( (max - min)/res )}}
+        N   : {{(c['max'] - c['min'])/c['../res']}}
     time:
       start : 0
       stop : 10
       dt : 0.001
 
-Don't like YAML? No problem, just provide with a parser that reads your preferred format from a string and returns a data tree. So, to read JSON,
+This example shows the convienence provided by the `DataTree` wrapper. The
+`res` parameter can be accessed by its relative path. We could have also used
+the absolute path (`c['/grid/res']`).
+
+Don't like YAML? No problem, just
+provide the `readConfig` function with a parser that reads your preferred format from a string and
+returns a nested dict. So, to read JSON,
 
     from configmakover.read import *
     import json
@@ -159,15 +167,17 @@ The ``readConfig`` function reads a configuration string and returns a configura
 
 1. The configuration string is passed through Tempita as a template. So, you configuration file can be a full blown Tempita template as long as this template renders to a string than can be parsed by the loader/de-serializer.
 
-2. The configuration string is parsed by a loader/de-serializer such as YAML.load or JSON.loads.
+1. The configuration string is parsed by a loader/de-serializer such as YAML.load or JSON.loads that creates a nested `dict`.
 
-3. A set of filter functions are called on every element in the configuration tree.
+1. A the nested `dict` is wrapped with a `DataTree`.
 
-4. The configuration tree is rendered (See details below).
+1. A set of filter functions are called on every element in the configuration tree.
 
-5. A set of filter functions are called on every element in the rendered configuration tree.
+1. The configuration tree is rendered (See details below).
 
-6. The data tree is returned.
+1. A set of filter functions are called on every element in the rendered configuration tree.
+
+1. The nested `dict` is returned.
 
 The rendering step is where most of the work (and power) happens. The rendering
 process will replace any references to other parameters in the configuration
@@ -177,27 +187,31 @@ stored in a tree. Second, Tempita is used to do the rendering, so all variable
 substitution are actually Tempita expressions, which means they can contain arbitrary
 Python code.
 
-The rendering process consists of several step. The rendering function is called recursively on the branches
-of the configuration tree so that it essentially 'walks' down the tree and begins rendering the bottom branches.
-This is useful because it allows for 'local' variable substitution. Parameter references will be replaced
-with values from the same branch if possible. If the parameter name that is referenced does not exist in
-the same branch, then a parameter in the parent branch will be used if it exists. If no parameter exists,
-the next highest branch is used, and so on until the top of the tree is reached.
+Several things are done to render the configuration tree. Essentially, each (terminal) element in the tree
+is passed through the Tempita `sub` function and replaced with the result. A `DataTree` view
+of the configuration tree is passed to the `sub` function as the render context, so all of
+the parameters in the configuration tree are avaiable in the Tempita expression.
 
-When a specific branch of the configuration tree is being rendered, the following things happen:
+In order to allow multi-level references (i.e. a parameter is references that
+references another parameter), this is repeated until the configuration tree does
+not change after a complete render. To protect against circular dependencies, a hash
+of the tree after each render is stored. If a hash is repeated, the rendering stops.
+repeats a previous state).  A modified version of Tempita's `_eval` function is
+used so that if an error occurs during the substitution, the template is
+returned unmodified. This allows the `sub` function to be called multiple times
+on the same template.
 
-1. The "configuration tree" is serialized into a "configuration string". This is done using pickle.
+The following steps are taken during one render of the configuration tree:
 
-2. A hash of the configuration string is stored.
+1. A hash of the configuration tree is stored by first pickling the tree, and then creating a hash of the pickle string.
 
-3. The configuration string is treated as a Tempita template and is rendered using the configuration tree
-   for the context.
+1. A list of all paths to terminal elements in the tree is generated.
 
-4. The configuration tree is replaced with the tree created from de-serializing the rendered configuration string.
+1. The element at each path is passed to the Tempita `sub` function.
 
-5. A hash of the rendered configuration string is computed and stored.
+1. A hash of the rendered configuration string is computed and stored.
 
-6. If the new hash matches any other hashes that have been stored, the render function is terminated. Otherwise,
+1. If the new hash matches any other hashes that have been stored, the render function is terminated. Otherwise,
    the process is repeated with the updated configuration tree.
 
 In addition to these steps, a set of user defined functions are used to "filter" the configuration tree elements
@@ -207,8 +221,10 @@ before the next render occurs so that their values can be used calculations perf
 
 Installation
 ------------
-Just copy the configmakover directory to a directory in your PYTHONPATH
-(It's still early, I haven't developed an installer).
+
+```
+python setup.py install
+```
 
 The makover.py script
 ---------------------
