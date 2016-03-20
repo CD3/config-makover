@@ -3,6 +3,7 @@ moddir = os.path.join( os.path.dirname( __file__ ), '..' )
 sys.path = [moddir] + sys.path
 
 from configmakover.DataTree import *
+import pytest
 
 
 def test_operations():
@@ -74,7 +75,7 @@ def test_spec():
                              , 'l2'  : { 'one' : '121' }
                              }
                    } )
-  data.new_spec( '/**', 'type', 'float|int' )
+  data.add_spec( '/**', 'type', 'float|int' )
 
   assert data['one'] == 1
   assert data['two'] == 2
@@ -85,7 +86,7 @@ def test_type_casting():
   data = DataTree( { 'length' : '1 cm'
                    , 'width'  : '2 inch'
                    } )
-  data.new_spec( '/**', 'type', 'Q|mag' )
+  data.add_spec( '/**', 'type', 'Q|mag' )
 
   # print data['length']
   # print data['width']
@@ -96,7 +97,7 @@ def test_units():
                    ,'width'  : '2 inch'
                   } )
 
-  data.new_spec( '**', 'type', 'Q' )
+  data.add_spec( '**', 'type', 'Q' )
 
 
   assert isinstance( data['length'], pint.quantity._Quantity )
@@ -119,6 +120,88 @@ def test_units():
   assert data.get('width', unit='inch').magnitude == 2
   assert data.get('width', unit='cm'  ).magnitude == 2*2.54
 
+
+def test_default():
+  data = { 'one' : 1
+         , 'two' : 2
+         , 'l1'  : { 'one' : 11
+                   , 'two' : 12
+                   , 'l1'  : { 'one' : 111 }
+                   }
+         , 'l2'  : { 'one' : 21
+                   , 'two' : 22
+                   }
+         }
+  pdata = DataTree( data )
+  pdata.set_spec( 'two/default', 200 )
+  pdata.set_spec( 'three/default', 300 )
+  pdata.set_spec( 'l1/two/default', 200 )
+  pdata.set_spec( 'l1/three/default', 300 )
+  pdata.set_spec( 'l1/l1/two/default', 200 )
+  pdata.set_spec( 'l1/l1/three/default', 300 )
+
+
+  assert pdata.get('one') == 1
+  assert pdata.get('two') == 2
+  assert pdata.get('three') == 300
+  assert pdata.get('l1/one') == 11
+  assert pdata.get('l1/two') == 12
+  assert pdata.get('l1/three') == 300
+  assert pdata.get('l1/l1/one') == 111
+  assert pdata.get('l1/l1/two') == 200
+  assert pdata.get('l1/l1/three') == 300
+
+  with pytest.raises(KeyError):
+    pdata.get('four')
+  with pytest.raises(KeyError):
+    pdata.get('l1/four')
+  with pytest.raises(KeyError):
+    pdata.get('l1/l1/four')
+  with pytest.raises(KeyError):
+    pdata.get('l1/l2/one')
+
+
+  assert     pdata.has('one')
+  assert     pdata.has('two')
+  assert not pdata.has('three')
+  assert     pdata.has('l1/one')
+  assert     pdata.has('l1/two')
+  assert not pdata.has('l1/three')
+  assert     pdata.has('l1/l1/one')
+  assert not pdata.has('l1/l1/two')
+  assert not pdata.has('l1/l1/three')
+
+
+  pdata.insert_defaults()
+
+  assert pdata.get('one') == 1
+  assert pdata.get('two') == 2
+  assert pdata.get('three') == 300
+  assert pdata.get('l1/one') == 11
+  assert pdata.get('l1/two') == 12
+  assert pdata.get('l1/three') == 300
+  assert pdata.get('l1/l1/one') == 111
+  assert pdata.get('l1/l1/two') == 200
+  assert pdata.get('l1/l1/three') == 300
+
+  with pytest.raises(KeyError):
+    pdata.get('four')
+  with pytest.raises(KeyError):
+    pdata.get('l1/four')
+  with pytest.raises(KeyError):
+    pdata.get('l1/l1/four')
+  with pytest.raises(KeyError):
+    pdata.get('l1/l2/one')
+
+  assert     pdata.has('one')
+  assert     pdata.has('two')
+  assert     pdata.has('three')
+  assert     pdata.has('l1/one')
+  assert     pdata.has('l1/two')
+  assert     pdata.has('l1/three')
+  assert     pdata.has('l1/l1/one')
+  assert     pdata.has('l1/l1/two')
+  assert     pdata.has('l1/l1/three')
 
 
 

@@ -105,7 +105,7 @@ def test_renderDataTree():
                                }
                   } )
 
-  data.new_spec( '**', 'type', 'int' )
+  data.add_spec( '**', 'type', 'int' )
 
   rendered_data = renderDataTree( data )
 

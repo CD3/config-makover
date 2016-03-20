@@ -71,7 +71,7 @@ def readConfig( text = None, parser = yaml.load
   if spec:
     for k in spec:
       for kk in spec[k]:
-        data.new_spec( k, kk, spec[k][kk] )
+        data.add_spec( k, kk, spec[k][kk] )
 
   # if pre filters where given, apply them
   data = applyFiltersToDataTree(data, pre_filters)

@@ -1,7 +1,7 @@
-import os
+import os, re
+import __builtin__
 import dpath
 import pint
-import __builtin__
 
 u = pint.UnitRegistry()
 u.define( 'percent = 0.01 radian = %' )
@@ -22,6 +22,10 @@ class DataTree(object):
     self.spec = s
 
   def _join(self,*args):
+    return DataTree.__join(*args)
+
+  @staticmethod
+  def __join(*args):
     return os.path.normpath( os.path.join( *args ) )
 
   def _abspath(self,p):
@@ -32,19 +36,22 @@ class DataTree(object):
 
     return os.path.normpath( path )
 
-  def _type( self, path ):
-    '''Return the type spec for a path. Returns None if no type exists in the spec.'''
+  def _spec( self, path, spec ):
+    '''Return an element from the spec. Returns None if no type exists in the spec.'''
     try:
-      return dpath.util.get( self.spec, self._join( path, 'type' ) )
+      return dpath.util.get( self.spec, self._join( path, spec ) )
     except:
       return None
 
+  def _type( self, path ):
+    return self._spec(path,'type')
+
   def _unit( self, path ):
     '''Return the type spec for a path. Returns None if no type exists in the spec.'''
-    try:
-      return dpath.util.get( self.spec, self._join( path, 'unit' ) )
-    except:
-      return None
+    return self._spec(path,'unit')
+
+  def _default( self, path ):
+    return self._spec(path,'default')
 
   def _totype( self, val, typelist ):
     if typelist == 'raw' or typelist is None:
@@ -71,6 +78,20 @@ class DataTree(object):
     except:
       return val
 
+  def _getdefault( self, path ):
+    '''Get default value for a given path.'''
+
+    # first, see if a default value exists for the path.
+    default = self._default(path)
+    if not default is None:
+      return default
+    
+    return None
+
+  def _get_paths(self, data, glob = '**', afilter = lambda x: True):
+    return [ x[0] for x in dpath.util.search( data, self._abspath(glob), afilter=lambda x:True, yielded=True ) ]
+
+
   def __getitem__(self,k):
     if isinstance(k,tuple):
       return self.get(k[0],k[1])
@@ -84,14 +105,20 @@ class DataTree(object):
     '''Returns true if data tree contains key k.'''
     return len( self.get_paths(k) ) > 0
 
-  def get(self,p,type=None,unit=None):
+  def get(self,p,type=None,unit=None,default=None):
     def first(*args):
       for a in args:
         if not a is None:
           return a
 
     path = self._abspath(p)
-    val = dpath.util.get( self.data, path )
+    try:
+      val = dpath.util.get( self.data, path )
+    except KeyError as e:
+      val = first( default, self._getdefault( path ) )
+      if val is None:
+        raise e
+
 
     val = self._tounit( val, first( unit, self._unit( path ) ) )
     val = self._totype( val, first( type, self._type( path ) ) )
@@ -105,9 +132,22 @@ class DataTree(object):
     '''Return a DataTree rooted at the path p.'''
     return DataTree( self.data, self._abspath( p )+'/' )
 
-  def new_spec(self,glob,k,v):
+  def add_spec(self,glob,speckey,val):
+    '''Add an entry to the spec. The data tree is searched for keys matching glob. If any keys
+    are found, an entry in the spec is added under each matched key..
+    '''
+
+    keygen = self._join
+
+    # if glob matches existing keys, create spec entries for each key that is matched.
+    num = 0
     for x in dpath.util.search( self.data, self._abspath(glob), afilter=lambda x:True, yielded=True ):
-      self.set_spec( self._join(x[0],k), v )
+      num += 1
+      self.set_spec( keygen(x[0],speckey), val )
+
+    # otherwise, just add it directly
+    if num == 0:
+     self.set_spec( keygen(glob,speckey), val )
 
   def set_spec(self,glob,v):
     dpath.util.new( self.spec, glob, v )
@@ -121,6 +161,24 @@ class DataTree(object):
       return None
 
   def get_paths(self, glob = '**', afilter = lambda x: True):
-    return [ x[0] for x in dpath.util.search( self.data, self._abspath(glob), afilter=lambda x:True, yielded=True ) ]
+    return self._get_paths( self.data, glob, afilter )
+
+  def get_spec_paths(self, glob = '**', afilter = lambda x: True):
+    return self._get_paths( self.spec, glob, afilter )
+
+  def insert_defaults(self):
+    '''Creates entries for all elements in the spec that have default values.'''
+    for k,v in dpath.util.search( self.spec, '**/default', afilter=lambda x:True, yielded=True ):
+      k = re.sub( '/default$', '', k )
+      if not self.has(k):
+        self.set(k,v)
+  
+  def sync(self):
+    '''Syncs tree with the spec. This will create missing entries that have default values, convert entries to their correct units, and cast entries to their type.'''
+    self.insert_defaults()
+    for p in self.get_paths():
+      self.set(p, self.get(p))
+        
+
 
 
