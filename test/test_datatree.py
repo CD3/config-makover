@@ -172,7 +172,12 @@ def test_default():
   assert not pdata.has('l1/l1/three')
 
 
-  pdata.insert_defaults()
+  # insert defaults
+  for k in pdata.get_spec_paths( '**/default' ):
+    v = pdata.get_spec(k)
+    k = re.sub( '/default$', '', k )
+    if not pdata.has(k):
+      pdata.set(k,v)
 
   assert pdata.get('one') == 1
   assert pdata.get('two') == 2

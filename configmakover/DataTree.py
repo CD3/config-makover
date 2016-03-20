@@ -5,6 +5,9 @@ import pint
 
 u = pint.UnitRegistry()
 u.define( 'percent = 0.01 radian = %' )
+# some convience aliases
+u.define( 'dC = delta_degC' )
+u.define( 'dF = delta_degF' )
 
 def Q(x):
   return u.Quantity(x)
@@ -155,8 +158,8 @@ class DataTree(object):
   def get_spec(self,path,k=None):
     try:
       if k:
-        k = self._join( path, k )
-      return dpath.util.get( self.spec, k )
+        path = self._join( path, k )
+      return dpath.util.get( self.spec, path )
     except:
       return None
 
@@ -166,18 +169,10 @@ class DataTree(object):
   def get_spec_paths(self, glob = '**', afilter = lambda x: True):
     return self._get_paths( self.spec, glob, afilter )
 
-  def insert_defaults(self):
-    '''Creates entries for all elements in the spec that have default values.'''
-    for k,v in dpath.util.search( self.spec, '**/default', afilter=lambda x:True, yielded=True ):
-      k = re.sub( '/default$', '', k )
-      if not self.has(k):
-        self.set(k,v)
-  
-  def sync(self):
-    '''Syncs tree with the spec. This will create missing entries that have default values, convert entries to their correct units, and cast entries to their type.'''
-    self.insert_defaults()
-    for p in self.get_paths():
-      self.set(p, self.get(p))
+
+
+  # legacy functions
+  new_spec = add_spec
         
 
 

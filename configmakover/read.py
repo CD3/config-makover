@@ -11,6 +11,8 @@ def readConfig( text = None, parser = yaml.load
                            , post_filters = []
                            , ignore_expression_errors = False
                            , spec = None
+                           , pre_treeFilter = None
+                           , post_treeFilter = None
                            , return_DataTree = False
                            , filename = None):
   '''
@@ -32,7 +34,13 @@ def readConfig( text = None, parser = yaml.load
 
   :param post_filters: A set of functions to call on each entry of the data tree after rendering is complete.
 
-  :param spec: A dict containing spec information for the data.
+  :param spec: A dict containing spec information for the data. Each entry in the dict will be added to the data tree using its add_spec function.
+
+  :param pre_treeFilter: A function that will be passed the data tree after it has been de-serialized, but before it is rendered.
+
+  :param post_treeFilter: A function that will be passed the data tree after it has been rendered.
+
+  :param return_DataTree: If True, function will return a DataTree instance instead of a dict.
 
   :param filename: Configuration filename. If given, ``text`` parameter is ignored.
 
@@ -73,15 +81,21 @@ def readConfig( text = None, parser = yaml.load
       for kk in spec[k]:
         data.add_spec( k, kk, spec[k][kk] )
 
-  # if pre filters where given, apply them
+  if pre_treeFilter:
+    data = pre_treeFilter(data)
+
+  # if pre filters were given, apply them
   data = applyFiltersToDataTree(data, pre_filters)
 
   # if render is set, we want to render the data tree
   if render:
     data = renderDataTree( data, imports=imports, filters=render_filters, strict=not ignore_expression_errors )
 
-  # if post filters where given, apply them
+  # if post filters were given, apply them
   data = applyFiltersToDataTree(data, post_filters)
+
+  if post_treeFilter:
+    data = post_treeFilter(data)
   
   if return_DataTree:
     return data
