@@ -68,7 +68,6 @@ class keyval:
         text += "\n"
     else:
       for k,v in dpath.util.search( data, '**', afilter=lambda x:True, yielded=True ):
-        print k
         text += k
         text += " = "
         text += str( v )

@@ -4,6 +4,7 @@ sys.path = [moddir] + sys.path
 
 from configmakover.DataTree import *
 import pytest
+import utils
 
 
 def test_operations():
@@ -104,9 +105,9 @@ def test_units():
   assert isinstance( data['width'], pint.quantity._Quantity )
 
   assert data['length'].magnitude == 1
-  assert data.get('length',unit='inch').magnitude == 1/2.54
+  assert utils.Close(data.get('length',unit='inch').magnitude, 1/2.54, 1e-5)
   assert data['width'].magnitude == 2
-  assert data.get('width',unit='cm').magnitude == 2*2.54
+  assert utils.Close(data.get('width',unit='cm').magnitude, 2*2.54, 1e-5)
 
 
 
@@ -116,9 +117,9 @@ def test_units():
 
 
   assert data.get('length',unit='cm'  ).magnitude == 1
-  assert data.get('length',unit='inch').magnitude == 1/2.54
+  assert utils.Close( data.get('length',unit='inch').magnitude, 1/2.54, 1e-5)
   assert data.get('width', unit='inch').magnitude == 2
-  assert data.get('width', unit='cm'  ).magnitude == 2*2.54
+  assert utils.Close(data.get('width', unit='cm'  ).magnitude, 2*2.54, 1e-5)
 
 
 def test_default():
