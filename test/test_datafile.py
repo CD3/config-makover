@@ -58,7 +58,7 @@ def test_units():
   assert data[1][0] == 1
   assert data[1][1] == 2
 
-  assert data(0,0) == 0
+  assert data(0,0) == Quan0
   assert data(0,1) == 1
   assert data(1,0) == 1
   assert data(1,1) == 2

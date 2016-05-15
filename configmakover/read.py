@@ -3,6 +3,8 @@ from .filters import toNum
 from tempita import Template
 import re
 
+funcRegex = re.compile('^\s*([^\s\(]+)\(([^\)]*)\)\s*')
+
 def readConfig( text = None, parser = yaml.load
                            , preprocess = True
                            , render = True
@@ -75,6 +77,16 @@ def readConfig( text = None, parser = yaml.load
 
   # read the data from the string into a tree
   data = DataTree(parser( text ))
+  # check for include commands
+  for p in data.get_paths():
+    v = data.get(p)
+    if isinstance(v, (str,unicode) ):
+      m = funcRegex.match(v)
+      if not m is None and m.groups()[0] == 'include':
+        nfn = m.groups()[1].strip().strip('"').strip("'")
+        with open( nfn ) as nf:
+          ntext = nf.read()
+        data.set(p, parser(ntext) )
 
   if spec:
     for k in spec:

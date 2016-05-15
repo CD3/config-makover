@@ -125,6 +125,28 @@ import math
   assert data['nest10']['nest2']['var4'] == 1
   assert data['nest10']['nest2']['var5'] == 11
 
+def test_includes():
+  nesteddata = { 'one' : 1, 'two' : 2 }
+
+  data = r'''
+  var1 : 1
+  var2 : some string
+  nest1 : include('example.yaml')
+  nest2 : include('example.yaml')
+  '''
+
+  with open('example.yaml','w') as f:
+    f.write(yaml.dump(nesteddata))
+
+  data = readConfig( data, render_filters=[toNum] )
+  logging.debug( "RESULT")
+  logging.debug( data )
+
+  assert data['nest1']['one'] == 1
+  assert data['nest1']['two'] == 2
+  assert data['nest2']['one'] == 1
+  assert data['nest2']['two'] == 2
+
 
 def test_passthrough():
   '''test that a config file containing no template expressions works'''
