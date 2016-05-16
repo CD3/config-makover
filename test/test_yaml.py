@@ -10,7 +10,6 @@ from configmakover.read import *
 from configmakover.render import *
 
 import utils
-#logging.basicConfig( level=logging.DEBUG )
 
 def test_simple():
   data = '''
@@ -42,8 +41,6 @@ import math
 
 
   data = readConfig( data, render_filters=[toNum] )
-  logging.debug( "RESULT")
-  logging.debug( data )
 
   assert data['var1'] == 1
   assert data['var2'] == 'some string'
@@ -139,13 +136,37 @@ def test_includes():
     f.write(yaml.dump(nesteddata))
 
   data = readConfig( data, render_filters=[toNum] )
-  logging.debug( "RESULT")
-  logging.debug( data )
 
   assert data['nest1']['one'] == 1
   assert data['nest1']['two'] == 2
   assert data['nest2']['one'] == 1
   assert data['nest2']['two'] == 2
+
+def test_datatable():
+
+  with open('example-data.txt', 'w') as f:
+    f.write('''
+    # units: cm 1/cm
+    1.0 4
+    1.1 3
+    1.2 2
+    ''')
+
+  data = r'''
+  var1 : 1
+  var2 : some string
+  data : DataTable('example-data.txt')
+  '''
+
+  data = readConfig( data, render_filters=[toNum] )
+
+  assert data['data'][0][0] == 1.0
+  assert data['data'][0][1] == 4
+  assert data['data'][1][0] == 1.1
+  assert data['data'][1][1] == 3
+  assert data['data'][2][0] == 1.2
+  assert data['data'][2][1] == 2
+
 
 
 def test_passthrough():

@@ -37,18 +37,18 @@ def CheckForExpressions(data):
 ExpressionErrorMsg = "One or more expressions where not replaced. The first one was '%s', but there may be others."
 
 
-def renderDataTree( data, imports = [], pre_filters = [], post_filters = [], filters = [], strict = False ):
+def renderDataTree( data, imports = [], setup = "", pre_filters = [], post_filters = [], filters = [], strict = False ):
   '''Renders a DataTree.'''
   # build the python block for importing the modules listed
-  imports_text = ""
+  setup_text = ""
   if isinstance( imports, str ):
     imports = [imports]
   if not imports is None and len(imports) > 0:
-    imports_text = ""
-    imports_text += "{{py:\n"
-    imports_text += "import "
-    imports_text += ", ".join( imports )
-    imports_text += "\n}}\n"
+    setup_text = ""
+    setup_text += "{{py:\n"
+    setup_text += "import "
+    setup_text += ", ".join( imports )
+    setup_text += "\n}}\n"
 
   # setup filters
   for f in filters:
@@ -71,7 +71,7 @@ def renderDataTree( data, imports = [], pre_filters = [], post_filters = [], fil
           data[key] = f(data[key,'raw'], key)
 
       if isinstance( data[key,'raw'], (str,unicode) ):
-        data[key] = tempita.sub( imports_text+data[key,'raw'], c=data.get_node( data._join( key,'..' ) ) )
+        data[key] = tempita.sub( setup_text+data[key,'raw'], c=data.get_node( data._join( key,'..' ) ) )
 
       for f in post_filters:
         nargs = len(inspect.getargspec( f ).args)

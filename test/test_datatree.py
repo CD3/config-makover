@@ -210,7 +210,6 @@ def test_default():
   assert     pdata.has('l1/l1/three')
 
 
-
 def test_searching():
   data = { '1' : 1
          , '2' : 2
@@ -220,6 +219,29 @@ def test_searching():
                   , 'l1' : { '1' : 111 }
                   }
          }
+
+def test_custom_types():
+  class myType:
+    def __init__(self):
+      self.data = 12345
+    def __str__(self):
+      return str(self.data)
+
+  data = { 'one' : 1
+         , 'two_point_one' : 2.1
+         , 'myType' : myType()
+         }
+
+  data = DataTree(data)
+
+  assert isinstance(data['one'],int)
+  assert isinstance(data['two_point_one'],float)
+  assert isinstance(data['myType'],myType)
+
+  assert str(data['one']) == '1'
+  assert str(data['two_point_one']) == '2.1'
+  assert str(data['myType'].data) == '12345'
+  assert str(data['myType']) == '12345'
 
 def test_misc():
   pass

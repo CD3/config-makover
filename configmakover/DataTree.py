@@ -3,11 +3,16 @@ import __builtin__
 import dpath
 import pint
 
+import DataTable
+
 u = pint.UnitRegistry()
 u.define( 'percent = 0.01 radian = %' )
 # some convience aliases
 u.define( 'dC = delta_degC' )
 u.define( 'dF = delta_degF' )
+
+DataTable = DataTable.DataTable
+DataTable.ureg = u
 
 def Q(x):
   return u.Quantity(x)

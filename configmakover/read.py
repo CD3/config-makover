@@ -5,6 +5,36 @@ import re
 
 funcRegex = re.compile('^\s*([^\s\(]+)\(([^\)]*)\)\s*')
 
+def include_func(fn, context):
+  with open(fn) as f:
+    text = f.read()
+  return context['parser'](text)
+
+def DataTable_func(fn, context):
+  return DataTable(fn)
+  
+funcs = { 'include' : include_func
+        , 'DataTable' : DataTable_func }
+
+
+
+def get_func_and_args(v):
+  if not isinstance(v,(str,unicode)):
+    return None,None
+
+  m = funcRegex.match(v)
+  if m is None:
+    return None,None
+    
+  f = m.groups()[0].strip(''' \t\n'"''')
+  a = m.groups()[1].split(',')
+  for i in range(len(a)):
+    a[i] = eval(a[i].strip())
+
+  return f,a
+
+
+
 def readConfig( text = None, parser = yaml.load
                            , preprocess = True
                            , render = True
@@ -47,7 +77,6 @@ def readConfig( text = None, parser = yaml.load
   :param filename: Configuration filename. If given, ``text`` parameter is ignored.
 
   '''
-
   if pre_filters is None:
     pre_filters = []
   if render_filters is None:
@@ -77,16 +106,12 @@ def readConfig( text = None, parser = yaml.load
 
   # read the data from the string into a tree
   data = DataTree(parser( text ))
+
   # check for include commands
   for p in data.get_paths():
-    v = data.get(p)
-    if isinstance(v, (str,unicode) ):
-      m = funcRegex.match(v)
-      if not m is None and m.groups()[0] == 'include':
-        nfn = m.groups()[1].strip().strip('"').strip("'")
-        with open( nfn ) as nf:
-          ntext = nf.read()
-        data.set(p, parser(ntext) )
+    f,a = get_func_and_args( data.get(p) )
+    if not f is None and f in funcs:
+      data.set(p, funcs[f]( *a, context = {'parser' : parser} ) )
 
   if spec:
     for k in spec:
