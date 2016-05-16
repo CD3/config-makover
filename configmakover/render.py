@@ -23,11 +23,8 @@ def _eval(self, code, ns, pos):
   return value
 Template._eval = _eval
 
-loader = pickle.loads
-dumper = pickle.dumps
-
 def CheckForExpressions(data):
-    serialized_data = dumper(data)
+    serialized_data = pickle.dumps(data)
     m = re.search("{{[^}]+}}", serialized_data)
     if m:
       s = serialized_data[m.start():m.end()]
@@ -35,6 +32,10 @@ def CheckForExpressions(data):
     else:
       return None
 ExpressionErrorMsg = "One or more expressions where not replaced. The first one was '%s', but there may be others."
+
+# helper functions
+def tableRow( table, x, cols, (units) ):
+  pass
 
 
 def renderDataTree( data, imports = [], setup = "", pre_filters = [], post_filters = [], filters = [], strict = False ):
@@ -71,7 +72,7 @@ def renderDataTree( data, imports = [], setup = "", pre_filters = [], post_filte
           data[key] = f(data[key,'raw'], key)
 
       if isinstance( data[key,'raw'], (str,unicode) ):
-        data[key] = tempita.sub( setup_text+data[key,'raw'], c=data.get_node( data._join( key,'..' ) ) )
+        data[key] = tempita.sub( setup_text+data[key,'raw'], c=data.get_node( data._join( key,'..' )), Q_=DataTree.ureg.Quantity )
 
       for f in post_filters:
         nargs = len(inspect.getargspec( f ).args)

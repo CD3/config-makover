@@ -1,1 +1,3 @@
-{}
+{
+  "test/test_yaml.py::test_datatable2": true
+}

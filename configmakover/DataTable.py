@@ -16,6 +16,23 @@ class DataTable:
     if not self._filename is None:
       self.load()
 
+  def __getstate__(self):
+    '''Add pickle support.'''
+
+    return { 'filename' : self._filename
+           , 'spec' : self._spec
+           , 'data' : self._data
+           }
+
+  def __setstate__(self,state):
+    '''Add pickle support.'''
+
+    self._filename = state['filename']
+    self._spec = state['spec']
+    self._data = state['data']
+    self._setup_interp()
+
+
   def load(self, fn = None):
     if not fn is None:
       self._filename = fn
@@ -38,14 +55,18 @@ class DataTable:
     # reset fh
     fh.seek(0,0)
     self._data = numpy.loadtxt( fh, unpack=True )
+    self._setup_interp()
 
-    self._interp = [ scipy.interpolate.interp1d( self._data[0], self._data[j] ) for j in range(1,len(self._data) ) ]
 
     return
 
   def loads(self, text):
     fh = StringIO.StringIO(text)
     self.loadfh(fh)
+
+  def _setup_interp(self):
+    self._interp = [ scipy.interpolate.interp1d( self._data[0], self._data[j] ) for j in range(1,len(self._data) ) ]
+    return
 
 
   def _get_units(self,col):
@@ -92,6 +113,8 @@ class DataTable:
 
   def iget(self,x,j=None,unit=None):
     '''Return an interpolated quantity from the table.'''
+    if j is None:
+      j = 1
 
     if not isinstance(x,pint.quantity._Quantity):
       x = self._make_Q(x,0)

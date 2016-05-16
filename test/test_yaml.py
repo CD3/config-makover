@@ -1,6 +1,6 @@
 #! /usr/bin/python
 
-import sys, os, timeit
+import sys, os, timeit, pprint
 moddir = os.path.join( os.path.dirname( __file__ ), '..' )
 sys.path = [moddir] + sys.path
 
@@ -160,12 +160,12 @@ def test_datatable():
 
   data = readConfig( data, render_filters=[toNum] )
 
-  assert data['data'][0][0] == 1.0
-  assert data['data'][0][1] == 4
-  assert data['data'][1][0] == 1.1
-  assert data['data'][1][1] == 3
-  assert data['data'][2][0] == 1.2
-  assert data['data'][2][1] == 2
+  assert data['data'](0,0) == 1.0
+  assert data['data'](0,1) == 4
+  assert data['data'](1,0) == 1.1
+  assert data['data'](1,1) == 3
+  assert data['data'](2,0) == 1.2
+  assert data['data'](2,1) == 2
 
 
 
@@ -245,3 +245,45 @@ import math
   assert data['/time/stop']  == 100
   assert data['/time/dt']    == 0.001
 
+def test_datatable2():
+  with open('abscoe-data.txt', 'w') as f:
+    f.write('''
+    # units: nm 1/cm
+    400 100
+    450 200
+    500 300
+    550 400
+    600 500
+    650 600
+    700 700
+    750 800
+    ''')
+
+  data = '''
+  {{py:
+import math
+  }}
+  res: 0.001
+  wavelength : 500
+  grid:
+    x:
+      min : 0
+      max : 10
+      N   : '{{ (c["max",int] - c["min",int])/c["/res"] }}'
+  time:
+    start : 0
+    stop : {{math.pow(10,2)}}
+    dt : 0.001
+  materials :
+    - desc : 'absorbing material'
+      abscoe_data : DataTable('abscoe-data.txt')
+      abscoe :
+        - "{{ c['/wavelength']+" "+c['../abscoe_data'].iget( Q_(c['/wavelength']), unit='1/m') }}"
+  '''
+
+  data = readConfig( data, return_DataTree=True )
+
+  # pprint.pprint(data.data)
+
+
+  assert utils.close( data['/materials/0/abscoe/0'].magnitude, 300*100 )

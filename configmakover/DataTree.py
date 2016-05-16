@@ -23,6 +23,8 @@ def mag(x):
   return x
 
 class DataTree(object):
+
+  ureg = u
   '''Simple wrapper for nested dicts that allows accessing dict elements with paths like a filesystem.'''
   def __init__(self, d = dict(), p = '/', s = dict()):
     self.root = p
