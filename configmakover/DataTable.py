@@ -8,19 +8,19 @@ class DataTable:
   ureg=pint.UnitRegistry()
 
   def __init__( self, filename = None, spec = dict()):
-    self.filename = filename
-    self.spec = spec
-    self.data = None
-    self.interp = None
+    self._filename = filename
+    self._spec = spec
+    self._data = None
+    self._interp = None
 
-    if not self.filename is None:
+    if not self._filename is None:
       self.load()
 
   def load(self, fn = None):
     if not fn is None:
-      self.filename = fn
+      self._filename = fn
 
-    with open(self.filename) as f:
+    with open(self._filename) as f:
       self.loadfh(f)
 
   def loadfh(self, fh):
@@ -33,13 +33,13 @@ class DataTable:
         key = tokens[0]
         key = key.strip()
         key = key.strip(':')
-        self.spec[ key ] = tokens[1:]
+        self._spec[ key ] = tokens[1:]
 
     # reset fh
     fh.seek(0,0)
-    self.data = numpy.loadtxt( fh, unpack=True )
+    self._data = numpy.loadtxt( fh, unpack=True )
 
-    self.interps = [ scipy.interpolate.interp1d( self.data[0], self.data[j] ) for j in range(1,len(self.data) ) ]
+    self._interp = [ scipy.interpolate.interp1d( self._data[0], self._data[j] ) for j in range(1,len(self._data) ) ]
 
     return
 
@@ -47,25 +47,59 @@ class DataTable:
     fh = StringIO.StringIO(text)
     self.loadfh(fh)
 
+
+  def _get_units(self,col):
+    units = ""
+    if 'units' in self._spec:
+      if col < len(self._data):
+        units = self._spec['units'][col]
+    return units
+
+  def _make_Q(self,v,col):
+    '''Return a Quantity with units determined by the column number.'''
+
+    q = self.ureg.Quantity( v, self._get_units(col) )
+
+    return q
+
   def __call__(self,i,j=None):
     if j is None:
       j = i
       i = 0
-    return self.data[j][i]
-
-  def interp(self,x,j=0):
-    pass
+    return self._data[j][i]
 
   def get(self,i,j=None,unit=None,default=None):
+    '''Return a quantity from the table. This will return a quantity with units.
+       If you just want the value of the quantity, use __call__.'''
     if j is None:
       j = i
       i = 0
 
-    units = ""
-    if 'units' in self.spec:
-      if j < len(self.data):
-        units = self.spec['units'][j]
-    q = self.ureg.Quantity( self(i,j), units )
+    v = self(i,j)
+    q = self._make_Q(v, j)
+    if unit:
+      q.ito(unit)
+
+    return q
+
+  def interp(self,x,j=None):
+    '''Return an interpolated value from the table.'''
+    if j is None:
+      j = 0
+
+    v = self._interp[j-1]( x )
+    return v
+
+  def iget(self,x,j=None,unit=None):
+    '''Return an interpolated quantity from the table.'''
+
+    if not isinstance(x,pint.quantity._Quantity):
+      x = self._make_Q(x,0)
+
+    x = x.to( self._get_units(0) )
+
+    v = self.interp(x,j)
+    q = self._make_Q(v, j)
     if unit:
       q.ito(unit)
 
@@ -74,9 +108,9 @@ class DataTable:
 
   def __str__(self):
     text = ""
-    for i in range(len(self.data)):
-      for j in range(len(self.data[i])):
-        text += str(self.data[i][j])
+    for i in range(len(self._data)):
+      for j in range(len(self._data[i])):
+        text += str(self._data[i][j])
         text += " "
       text += "\n"
     return text

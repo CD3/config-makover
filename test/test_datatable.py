@@ -50,7 +50,7 @@ def test_units():
   data = DataTable()
   data.loads(text)
 
-  assert 'units' in data.spec
+  assert 'units' in data._spec
 
   assert data(0,0) == 0
   assert data(0,1) == 1
@@ -61,4 +61,43 @@ def test_units():
   assert utils.close( data.get(0,1,'1/m').magnitude, 1.e9 )
   assert utils.close( data.get(1,0,'m').magnitude, 1e-9 )
   assert utils.close( data.get(1,1,'1/m').magnitude, 2e9 )
+
+
+def test_interpolation():
+  text = r'''
+  # names: wavelength probability
+  # units: m 1/nm
+  '''
+
+  x = [ 0.1*i for i in range(0,100) ]
+  for i in range(len(x)):
+    text += str(x[i])
+    text += " "
+    text += str(math.sin(x[i]))
+    text += "\n"
+  
+  data = DataTable()
+  data.loads(text)
+  Q_ = DataTable.ureg.Quantity
+
+  assert utils.close( data.interp( 0.45,1 ), math.sin( 0.45 ) )
+  assert utils.close( data.interp( 5.45,1 ), math.sin( 5.45 ) )
+
+  assert utils.close( data.iget( 0.45,1 ).magnitude, math.sin( 0.45 ) )
+  assert utils.close( data.iget( 5.45,1 ).magnitude, math.sin( 5.45 ) )
+
+  assert utils.close( data.iget( 0.45,1,'1/m' ).magnitude, 1e9*math.sin( 0.45 ) )
+  assert utils.close( data.iget( 5.45,1,'1/m' ).magnitude, 1e9*math.sin( 5.45 ) )
+
+  assert utils.close( data.iget( Q_(0.45,'m'),1,'1/m' ).magnitude, 1e9*math.sin( 0.45 ) )
+  assert utils.close( data.iget( Q_(5.45,'m'),1,'1/m' ).magnitude, 1e9*math.sin( 5.45 ) )
+
+  assert utils.close( data.iget( Q_(0.45,'cm'),1,'1/m' ).magnitude, 1e9*math.sin( 0.0045 ) )
+  assert utils.close( data.iget( Q_(5.45,'cm'),1,'1/m' ).magnitude, 1e9*math.sin( 0.0545 ) )
+
+  assert utils.close( data.iget( Q_(45,'cm'),1,'1/m' ).magnitude,  1e9*math.sin( 0.45 ) )
+  assert utils.close( data.iget( Q_(545,'cm'),1,'1/m' ).magnitude, 1e9*math.sin( 5.45 ) )
+
+
+
 
