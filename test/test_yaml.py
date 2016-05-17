@@ -264,7 +264,7 @@ def test_datatable2():
 import math
   }}
   res: 0.001
-  wavelength : 500
+  wavelength : 500 nm
   grid:
     x:
       min : 0
@@ -278,7 +278,7 @@ import math
     - desc : 'absorbing material'
       abscoe_data : DataTable('abscoe-data.txt')
       abscoe :
-        - "{{ c['/wavelength']+" "+c['../abscoe_data'].iget( Q_(c['/wavelength']), unit='1/m') }}"
+        - "{{ c['../abscoe_data'].rowstr( c['/wavelength'], 1, '1/cm' ) }}"
   '''
 
   data = readConfig( data, return_DataTree=True )
@@ -286,4 +286,4 @@ import math
   # pprint.pprint(data.data)
 
 
-  assert utils.close( data['/materials/0/abscoe/0'].magnitude, 300*100 )
+  assert data['/materials/0/abscoe/0'] == "500 300.0"

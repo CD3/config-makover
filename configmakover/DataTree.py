@@ -81,9 +81,9 @@ class DataTree(object):
 
   def _tounit( self, val, unit ):
     try:
-      q = Q(val)
+      q = self.ureg.Quantity(val)
       if q.units == u.dimensionless:
-        q = Q(str(val) + " " + str(unit))
+        q = self.ureg.Quantity(str(val) + " " + str(unit))
       return q.to(unit)
     except:
       return val

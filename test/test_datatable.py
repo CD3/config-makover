@@ -98,6 +98,14 @@ def test_interpolation():
   assert utils.close( data.iget( Q_(45,'cm'),1,'1/m' ).magnitude,  1e9*math.sin( 0.45 ) )
   assert utils.close( data.iget( Q_(545,'cm'),1,'1/m' ).magnitude, 1e9*math.sin( 5.45 ) )
 
+  assert utils.close( data.iget( '0.45 m' ).magnitude, math.sin( 0.45 ) )
+  assert utils.close( data.iget( '5.45 m' ).magnitude, math.sin( 5.45 ) )
+
+  assert utils.close( data.iget( '0.45 cm' ).magnitude, math.sin( 0.0045 ) )
+  assert utils.close( data.iget( '5.45 cm' ).magnitude, math.sin( 0.0545 ) )
+
+  assert utils.close( data.iget( '0.45' ).magnitude, math.sin( 0.45 ) )
+  assert utils.close( data.iget( '5.45' ).magnitude, math.sin( 5.45 ) )
 
 
 

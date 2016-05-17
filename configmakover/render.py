@@ -34,9 +34,6 @@ def CheckForExpressions(data):
 ExpressionErrorMsg = "One or more expressions where not replaced. The first one was '%s', but there may be others."
 
 # helper functions
-def tableRow( table, x, cols, (units) ):
-  pass
-
 
 def renderDataTree( data, imports = [], setup = "", pre_filters = [], post_filters = [], filters = [], strict = False ):
   '''Renders a DataTree.'''
