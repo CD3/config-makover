@@ -14,6 +14,21 @@ u.define( 'dF = delta_degF' )
 DataTable = DataTable.DataTable
 DataTable.ureg = u
 
+def dpath_util_get(obj,path,separator='/'):
+  # get rid of any separators at the beginning and end
+  path = path.strip(separator)
+  if separator in path:
+    head,rest = path.split(separator,1)
+    if isinstance( obj, list ):
+      head = int(head)
+    return dpath_util_get(obj[head],rest,separator)
+  else:
+    if isinstance( obj, list ):
+      path = int(path)
+    return obj[path]
+
+dpath.util.get = dpath_util_get
+
 def Q(x):
   return u.Quantity(x)
 
@@ -27,15 +42,11 @@ class DataTree(object):
   ureg = u
   '''Simple wrapper for nested dicts that allows accessing dict elements with paths like a filesystem.'''
   def __init__(self, d = dict(), p = '/', s = dict()):
-    self.root = p
-    self.data = d
-    self.spec = s
+    self.root = p     # the path to this trees root element
+    self.data = d     # the dictionary that this tree presents a view of
+    self.spec = s     # specification data (meta data) for the elements in the tree
 
   def _join(self,*args):
-    return DataTree.__join(*args)
-
-  @staticmethod
-  def __join(*args):
     return os.path.normpath( os.path.join( *args ) )
 
   def _abspath(self,p):
@@ -46,22 +57,21 @@ class DataTree(object):
 
     return os.path.normpath( path )
 
-  def _spec( self, path, spec ):
+  def _spec_entry( self, path, entry):
     '''Return an element from the spec. Returns None if no type exists in the spec.'''
     try:
-      return dpath.util.get( self.spec, self._join( path, spec ) )
+      return dpath.util.get( self.spec, self._join( path, entry) )
     except:
       return None
 
   def _type( self, path ):
-    return self._spec(path,'type')
+    return self._spec_entry(path,'type')
 
   def _unit( self, path ):
-    '''Return the type spec for a path. Returns None if no type exists in the spec.'''
-    return self._spec(path,'unit')
+    return self._spec_entry(path,'unit')
 
   def _default( self, path ):
-    return self._spec(path,'default')
+    return self._spec_entry(path,'default')
 
   def _totype( self, val, typelist ):
     if typelist == 'raw' or typelist is None:
