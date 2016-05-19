@@ -27,7 +27,11 @@ def dpath_util_get(obj,path,separator='/'):
       path = int(path)
     return obj[path]
 
+def dpath_util_isglob(glob):
+  return '*' in glob
+
 dpath.util.get = dpath_util_get
+dpath.util.isglob = dpath_util_isglob
 
 def Q(x):
   return u.Quantity(x)
@@ -152,22 +156,20 @@ class DataTree(object):
     '''Return a DataTree rooted at the path p.'''
     return DataTree( self.data, self._abspath( p )+'/' )
 
-  def add_spec(self,glob,speckey,val):
-    '''Add an entry to the spec. The data tree is searched for keys matching glob. If any keys
+  def add_spec(self,path,speckey,val):
+    '''Add an entry to the spec. The data tree is searched for keys matching path. If any keys
     are found, an entry in the spec is added under each matched key..
     '''
 
     keygen = self._join
 
-    # if glob matches existing keys, create spec entries for each key that is matched.
-    num = 0
-    for x in dpath.util.search( self.data, self._abspath(glob), afilter=lambda x:True, yielded=True ):
-      num += 1
-      self.set_spec( keygen(x[0],speckey), val )
-
-    # otherwise, just add it directly
-    if num == 0:
-     self.set_spec( keygen(glob,speckey), val )
+    # if path is a glob, create spec entries for each key that matches the glob
+    if dpath.util.isglob(path):
+      for x in dpath.util.search( self.data, self._abspath(path), afilter=lambda x:True, yielded=True ):
+        self.set_spec( keygen(x[0],speckey), val )
+    else:
+      # otherwise, just add it directly
+       self.set_spec( keygen(path,speckey), val )
 
   def set_spec(self,glob,v):
     dpath.util.new( self.spec, glob, v )
