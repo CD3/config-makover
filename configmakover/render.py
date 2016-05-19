@@ -69,7 +69,8 @@ def renderDataTree( data, imports = [], setup = "", pre_filters = [], post_filte
           data[key] = f(data[key,'raw'], key)
 
       if isinstance( data[key,'raw'], (str,unicode) ):
-        data[key] = tempita.sub( setup_text+data[key,'raw'], c=data.get_node( data._join( key,'..' )), Q_=DataTree.ureg.Quantity )
+        context = data.get_node( data._join( key,'..' ))
+        data[key] = tempita.sub( setup_text+data[key,'raw'], c=context, Q_=DataTree.ureg.Quantity )
 
       for f in post_filters:
         nargs = len(inspect.getargspec( f ).args)
