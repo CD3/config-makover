@@ -57,7 +57,7 @@ class keyval:
     return data
 
   @staticmethod
-  def dump( data ):
+  def dump( data, separator='.'):
 
     text = ""
     if isinstance(data, DataTree):
@@ -67,7 +67,7 @@ class keyval:
         text += str( data[k] )
         text += "\n"
     else:
-      for k,v in dpath.util.search( data, '**', afilter=lambda x:True, yielded=True ):
+      for k,v in dpath.util.search( data, '**', afilter=lambda x:True, yielded=True, separator=separator ):
         text += k
         text += " = "
         text += str( v )

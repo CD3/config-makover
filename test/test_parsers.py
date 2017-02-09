@@ -94,6 +94,6 @@ def test_keyval_dumper_nested():
          , 'level1' : { 'key11' : 11 }
          }
 
-  text = keyval.dump( data )
+  text = keyval.dump( data, separator='/' )
 
   assert text == 'key3 = three\nkey2 = 2.0\nkey1 = 1\nlevel1/key11 = 11\n'
