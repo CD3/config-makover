@@ -1,8 +1,9 @@
 
-def close( a, b, tol = 0.001 ):
-    '''Return true if a and b are with tol of each other (tol is a fraction)'''
-    a = float(a)
-    b = float(b)
-    return (a - b)**2 < 4*tol*tol*(a**2 + b**2)
-
-Close = close
+class Approx(object):
+  def __init__(self,val):
+    self.val = val
+    self.epsilon = 0.01
+  def epsilon(self,epsilon):
+    self.epsilon = epsilon
+  def __eq__(self,other):
+    return abs(other - self.val) <= self.epsilon*abs(other + self.val)/2

@@ -6,8 +6,8 @@ sys.path = [moddir] + sys.path
 
 import pytest
 
-from configmakover.read import *
-from configmakover.filters import *
+from dynconfig.read import *
+from dynconfig.filters import *
 
 import utils
 #logging.basicConfig( level=logging.DEBUG )

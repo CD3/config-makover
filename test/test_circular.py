@@ -5,18 +5,18 @@ import pytest
 moddir = os.path.join( os.path.dirname( __file__ ), '..' )
 sys.path = [moddir] + sys.path
 
-from configmakover.read import *
+from dynconfig.read import *
 
 import utils
 
 #logging.basicConfig(level=logging.DEBUG)
 
 def test_circular_deps():
-  with pytest.raises(RuntimeError):
+
     data = '''
     var1 : 1
-    var2 : "{{c['var3']}}"
-    var3 : "{{c['var2']}}"
+    var2 : "$({var3})"
+    var3 : "$({var2})"
     nest1 :
       var1 : 11
       var2 : 12
@@ -25,7 +25,15 @@ def test_circular_deps():
         var2 : 112
     '''
 
-    data = readConfig( data )
+    with pytest.raises(RuntimeError):
+      data = readConfig( data )
+
+    data = readConfig( data, ignore_unparsed_expressions = True )
+
+    data['var1'] = 1
+    data['var2'] = "$({var3})"
+    data['var3'] = "$({var2})"
+
 
 
 

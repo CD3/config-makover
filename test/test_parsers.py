@@ -4,7 +4,7 @@ sys.path = [moddir] + sys.path
 
 import pytest
 
-from configmakover.parsers import *
+from dynconfig.parsers import *
 
 import utils
 
@@ -95,5 +95,17 @@ def test_keyval_dumper_nested():
          }
 
   text = keyval.dump( data, separator='/' )
-
   assert text == 'key3 = three\nkey2 = 2.0\nkey1 = 1\nlevel1/key11 = 11\n'
+  text = keyval.dump( data, separator='.' )
+  assert text == 'key3 = three\nkey2 = 2.0\nkey1 = 1\nlevel1.key11 = 11\n'
+
+  pdata = pdict()
+  pdata.update(data)
+
+  text = keyval.dump( pdata, separator='/' )
+  assert text == 'key3 = three\nkey2 = 2.0\nkey1 = 1\nlevel1/key11 = 11\n'
+  text = keyval.dump( pdata, separator='.' )
+  assert text == 'key3 = three\nkey2 = 2.0\nkey1 = 1\nlevel1.key11 = 11\n'
+
+
+

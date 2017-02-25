@@ -1,9 +1,12 @@
 from .utils import *
-from .DataTree import *
 
+import re
 import StringIO
 import ConfigParser
 import dpath
+
+import yaml
+import json
 
 class ini:
 
@@ -60,9 +63,11 @@ class keyval:
   def dump( data, separator='.'):
 
     text = ""
-    if isinstance(data, DataTree):
-      for k in sorted(data.get_paths()):
-        text += k
+    if isinstance(data, pdict):
+      for k in get_all_pdict_keys(data):
+        # translate pdict keys
+        kk = re.sub('^'+data.delimiter, '', k).replace(data.delimiter,separator)
+        text += kk
         text += " = "
         text += str( data[k] )
         text += "\n"

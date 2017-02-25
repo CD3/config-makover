@@ -6,47 +6,42 @@ sys.path = [moddir] + sys.path
 
 import pytest
 
-from configmakover.read import *
-from configmakover.render import *
+from dynconfig.read import *
 
-import utils
+from utils import *
 
 def test_simple():
   data = '''
-  {{py:
-import math
-  }}
   var1 : 1
   var2 : some string
   var3 : 3
-  var4 : "{{c['var3'] + math.pi + 2}}"
-  var5 : "{{c['var4'] + 2.0}}"
+  var4 : "$({var3} + m.pi + 2)"
+  var5 : "$({var4} + 2.0)"
   nest1 : &nest
     var1 : 11
-    var2 : "{{c['var3'] + 12}}"
-    var3 : "{{c['var1'] + 12}}"
-    var4 : "{{c['var3'] + 12}}"
-    var5 : "{{c['../nest1/var3'] + 12}}"
+    var2 : "$({var3} + 12)"
+    var3 : "$({var1} + 12)"
+    var4 : "$({var3} + 12)"
+    var5 : "$({../nest1/var3} + 12)"
     list1 :
       - 01
-      - "{{c['0']}}"
+      - "$({0})"
       - 03
     nest2 :
       var1 : 111
       var2 : 112
-      var3 : "{{c['var1']}}"
-      var4 : "{{c['/var1']}}"
-      var5 : "{{c['/nest1/var1']}}"
+      var3 : "$({var1})"
+      var4 : "$({/var1})"
+      var5 : "$({/nest1/var1})"
   '''
 
-
-  data = readConfig( data, render_filters=[toNum] )
+  data = readConfig( data )
 
   assert data['var1'] == 1
   assert data['var2'] == 'some string'
   assert data['var3'] == 3
-  assert utils.close( data['var4'], 3 + 3.14159 + 2 )
-  assert utils.close( data['var5'], 3 + 3.14159 + 2 + 2.0 )
+  assert data['var4'] ==  Approx(3 + 3.14159 + 2 )
+  assert data['var5'] ==  Approx(3 + 3.14159 + 2 + 2.0 )
   assert data['nest1']['var1'] == 11
   assert data['nest1']['var2'] == 11 + 12 + 12
   assert data['nest1']['var3'] == 11 + 12
@@ -63,26 +58,23 @@ import math
 
 def test_large():
   data = '''
-  {{py:
-import math
-  }}
   var1 : 1
   var2 : some string
   var3 : 3
-  var4 : '{{c["var3"] + math.pi + 2}}'
-  var5 : '{{c["var4"] + 2.0}}'
+  var4 : '$({var3} + m.pi + 2)'
+  var5 : '$({var4} + 2.0)'
   nest1 : &nest
     var1 : 11
-    var2 : '{{c["var3"] + 12}}'
-    var3 : '{{c["var1"] + 12}}'
-    var4 : '{{c["var3"] + 12}}'
-    var5 : '{{c["../nest1/var3"] + 12}}'
+    var2 : '$({var3} + 12)'
+    var3 : '$({var1} + 12)'
+    var4 : '$({var3} + 12)'
+    var5 : '$({../nest1/var3} + 12)'
     nest2 :
       var1 : 111
       var2 : 112
-      var3 : '{{c["var1"]}}'
-      var4 : '{{c["/var1"]}}'
-      var5 : '{{c["/nest1/var1"]}}'
+      var3 : '$({var1})'
+      var4 : '$({/var1})'
+      var5 : '$({/nest1/var1})'
   nest2 :
     << : *nest
   nest3 :
@@ -101,16 +93,28 @@ import math
     << : *nest
   nest10 :
     << : *nest
+  nest10 :
+    << : *nest
+  nest11 :
+    << : *nest
+  nest12 :
+    << : *nest
+  nest13 :
+    << : *nest
+  nest14 :
+    << : *nest
+  nest15 :
+    << : *nest
   '''
 
 
-  data = readConfig( data, render_filters = [toNum] )
+  data = readConfig( data )
 
   assert data['var1'] == 1
   assert data['var2'] == 'some string'
   assert data['var3'] == 3
-  assert utils.close( data['var4'], 3 + 3.14159 + 2 )
-  assert utils.close( data['var5'], 3 + 3.14159 + 2 + 2.0 )
+  assert data['var4'] == Approx( 3 + 3.14159 + 2 )
+  assert data['var5'] == Approx( 3 + 3.14159 + 2 + 2.0 )
   assert data['nest10']['var1'] == 11
   assert data['nest10']['var2'] == 11 + 12 + 12
   assert data['nest10']['var3'] == 11 + 12
@@ -121,7 +125,9 @@ import math
   assert data['nest10']['nest2']['var3'] == 111
   assert data['nest10']['nest2']['var4'] == 1
   assert data['nest10']['nest2']['var5'] == 11
+  assert data['nest15']['nest2']['var5'] == 11
 
+@pytest.mark.skip(reason="need to re-implement include function.")
 def test_includes():
   nesteddata = { 'one' : 1, 'two' : 2 }
 
@@ -135,15 +141,15 @@ def test_includes():
   with open('example.yaml','w') as f:
     f.write(yaml.dump(nesteddata))
 
-  data = readConfig( data, render_filters=[toNum] )
+  data = readConfig( data )
 
   assert data['nest1']['one'] == 1
   assert data['nest1']['two'] == 2
   assert data['nest2']['one'] == 1
   assert data['nest2']['two'] == 2
 
+@pytest.mark.skip(reason="need to re-implement datatable function.")
 def test_datatable():
-
   with open('example-data.txt', 'w') as f:
     f.write('''
     # units: cm 1/cm
@@ -167,8 +173,6 @@ def test_datatable():
   assert data['data'](2,0) == 1.2
   assert data['data'](2,1) == 2
 
-
-
 def test_passthrough():
   '''test that a config file containing no template expressions works'''
 
@@ -190,7 +194,7 @@ def test_passthrough():
   '''
 
 
-  data = readConfig( data, render_filters=[toNum] )
+  data = readConfig( data )
 
   assert data['grid']['x']['min'] == 0
   assert data['grid']['x']['max'] == 10
@@ -206,31 +210,29 @@ def test_physicsy():
   '''test a config typical of physics simulations'''
   data = '''
   # heat solver config file
-  {{py:
-import math
-  }}
   res: 0.001
   grid:
     x:
       min : 0
       max : 10
-      N   : '{{ (c["max",int] - c["min",int])/c["/res"] }}'
+      N   : $( ({max} - {min})/{/res} | int )
     y:
       min : 0
-      max : '{{2*c["../x/max",float]}}'
-      N   : '{{ (c["max",int] - c["min",int])/c["/res"] }}'
+      max : $(2*{../x/max})
+      N   : $( ({max} - {min})/{/res} | int )
     z:
       min : 0
-      max : '{{2*c["../y/max",float]}}'
-      N   : '{{ (c["max",int] - c["min",int])/c["/res"] }}'
+      max : $(2*{../y/max})
+      N   : $( ({max} - {min})/{/res} | int )
   time:
     start : 0
-    stop : {{math.pow(10,2)}}
+    stop : $(m.pow(10,2))
     dt : 0.001
   '''
 
 
-  data = readConfig( data, render_filters=[toNum], return_DataTree=True )
+  data = readConfig( data, return_pdict=True )
+  
 
   assert data['/grid/x/min'] == 0
   assert data['/grid/x/max'] == 10
@@ -245,6 +247,7 @@ import math
   assert data['/time/stop']  == 100
   assert data['/time/dt']    == 0.001
 
+@pytest.mark.skip(reason="need to port to new render function.")
 def test_datatable2():
   with open('abscoe-data.txt', 'w') as f:
     f.write('''

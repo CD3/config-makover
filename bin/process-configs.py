@@ -4,17 +4,17 @@ import sys, os
 moddir = os.path.join( os.path.dirname( __file__ ), '..' )
 sys.path = [moddir] + sys.path
 
-from configmakover.read import *
+from dynconfig.read import *
 import json
 import yaml
 
 from argparse import ArgumentParser
 
-parser = ArgumentParser(description="Makover a set config files.")
+parser = ArgumentParser(description="Process a set of dynamic config files.")
 
 parser.add_argument("infile",
                     action="store",
-                    help="Config files to makover." )
+                    help="Config files to process." )
 
 parser.add_argument("-f", "--format",
                     action="store",

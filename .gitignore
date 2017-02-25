@@ -1,6 +1,7 @@
 *.swp
 *.pyc
 __pycache__
+.cache/
 build/
 dist/
 config_makover.egg-info/

@@ -3,96 +3,54 @@ moddir = os.path.join( os.path.dirname( __file__ ), '..' )
 sys.path = [moddir] + sys.path
 
 import pytest
-import utils
-from configmakover.read import *
-from configmakover.parsers import *
+from utils import Approx
 
-def test_quantity_support():
+from dynconfig.read import *
+from dynconfig.parsers import *
 
-  text = '''
-  zmin = 0 cm
-  zmax = 1 m
-  material/0/density = 988 kg/m^3
-  material/0/thickness  = 10 um
-  material/0/specheat = 4.182 kJ/kg/degK
-  material/1/density = 1500 g/m^3
-  material/1/thickness  = 2 mm
-  material/1/specheat = 1 cal/g/degK
-  rmax = 11
-  ratio = 40 percent
+def test_simple():
+
+  data = '''
+  var1 = $(1|int)
+  var2 = some string
+  var3 = $(3|int)
+  var4 = $({var3} + m.pi + 2)
+  var5 = $({var4} + 2.0)
+  nest1/var1 = $(11|int)
+  nest1/var2 = $({var3} + 12)
+  nest1/var3 = $({var1} + 12)
+  nest1/var4 = $({var3} + 12)
+  nest1/var5 = $({../nest1/var3} + 12)
+  nest1/list1/0 = $(01|int)
+  nest1/list1/1 = $({0})
+  nest1/list1/2 = $(03|int)
+  nest1/nest2/var1 = $(111)
+  nest1/nest2/var2 = $(112)
+  nest1/nest2/var3 = $({var1})
+  nest1/nest2/var4 = $({/var1})
+  nest1/nest2/var5 = $({/nest1/var1})
   '''
 
-  spec = '''
-      'material/**/density':
-        'unit' : 'g/cm^3'
-        'type' : 'mag'
-      'material/**/thickness':
-        'unit' : 'cm'
-        'type' : 'mag'
-      'material/**/specheat':
-        'unit' : 'J/g/degK'
-        'type' : 'mag'
-      'zmin' :
-        'unit': 'cm'
-        'type' : 'mag'
-      'zmax' :
-        'unit' : 'cm'
-        'type' : 'mag'
-      'rmax' :
-        'unit' : 'cm'
-        'type' : 'mag'
-      'ratio' :
-        'unit' : 'dimensionless'
-        'type' : 'mag'
-        '''
-
-  data = readConfig( text, parser=lambda x : keyval.load(x,separator='/'), spec=yaml.load(spec), return_DataTree=True )
+  data = readConfig( data , parser=lambda x : keyval.load(x,separator='/') )
 
 
-  assert data['zmin'] == 0
-  assert data['zmax'] == 100
-  assert utils.close(data['material/0/density'], 988.*1000/100**3)
-  assert utils.close(data['material/0/thickness'], 10e-6*100)
-  assert utils.close(data['material/0/specheat'], 4.182)
-
-  assert utils.close(data['material/1/density'], 1500./100**3)
-  assert utils.close(data['material/1/thickness'], 0.2)
-  assert utils.close(data['material/1/specheat'], 4.182)
-
-  assert data['rmax'] == 11
-  assert data['ratio'] == 0.4
-
-
-
-  text = '''
-  zmin = 0 cm
-  zmax = 1 m
-  rmax = 11
-  ratio = 40 percent
-  '''
-
-  spec = '''
-      'zmin' :
-        'unit': 'cm'
-      'zmax' :
-        'unit' : 'cm'
-      'rmax' :
-        'unit' : 'cm'
-      'ratio' :
-        'unit' : 'dimensionless'
-        '''
-
-  def toMag( v ):
-    try:
-      return v.magnitude
-    except:
-      return v
-
-  data = readConfig( text, parser=lambda x : keyval.load(x,separator='/'), spec=yaml.load(spec), post_filters=[toMag], return_DataTree=True )
+  assert data['var1'] == 1
+  assert data['var2'] == 'some string'
+  assert data['var3'] == 3
+  assert data['var4'] ==  Approx(3 + 3.14159 + 2 )
+  assert data['var5'] ==  Approx(3 + 3.14159 + 2 + 2.0 )
+  assert data['nest1']['var1'] == 11
+  assert data['nest1']['var2'] == 11 + 12 + 12
+  assert data['nest1']['var3'] == 11 + 12
+  assert data['nest1']['var4'] == 11 + 12 + 12
+  assert data['nest1']['var5'] == 11 + 12 + 12
+  assert data['nest1']['list1']['0'] == 1
+  assert data['nest1']['list1']['1'] == 1
+  assert data['nest1']['list1']['2'] == 3
+  assert data['nest1']['nest2']['var1'] == 111
+  assert data['nest1']['nest2']['var2'] == 112
+  assert data['nest1']['nest2']['var3'] == 111
+  assert data['nest1']['nest2']['var4'] == 1
+  assert data['nest1']['nest2']['var5'] == 11
 
 
-
-  assert data['zmin'] == 0
-  assert data['zmax'] == 100
-  assert data['rmax'] == 11
-  assert data['ratio'] == 0.4
