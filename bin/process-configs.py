@@ -40,8 +40,8 @@ loader = yaml.load
 dumper = yaml.dump
 
 if args.format.lower() == 'json':
-  loader = yaml.loads
-  dumper = yaml.dumps
+  loader = json.loads
+  dumper = json.dumps
 
 
 config = readConfig( text, parser=loader )
