@@ -1,9 +1,10 @@
 
 class Approx(object):
   def __init__(self,val):
-    self.val = val
-    self.epsilon = 0.01
+    self._val = val
+    self._epsilon = 0.01
   def epsilon(self,epsilon):
-    self.epsilon = epsilon
+    self._epsilon = epsilon
+    return self
   def __eq__(self,other):
-    return abs(other - self.val) <= self.epsilon*abs(other + self.val)/2
+    return abs(other - self._val) <= self._epsilon*abs(other + self._val)/2

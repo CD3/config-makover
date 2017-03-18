@@ -74,10 +74,20 @@ def render( data, repeat = False, locals = {}, filters = {}, strict = False ):
           logging.info("evaluating expression: '{0}'".format(exp_str))
 
           exp_str,fchar,filt_str = exp_str.partition('|') # split filters from expression
-          context = {'context':data[data.pathname(k)]}   # use element's parent as context
-          context.update(local_ns)                       # add local namespace to context
+          context = {'context':data[data.pathname(k)]}    # use element's parent as context
+          context.update(local_ns)                        # add local namespace to context
           try:
-            r = eval(exp_str,{'__builtins__':None},context)
+            try:
+              r = eval(exp_str,{'__builtins__':None},context)
+            except Exception as e:
+              # SPECIAL CASE
+              # allow strings to be passed to filters without quotes
+              # if filters exists. i.e allow $( 10 us | float ) as a short hand
+              # for $( "10 us" | float )
+              if filt_str != "":
+                r = exp_str
+              else:
+                raise e
             if filt_str !=  "": # apply filters if they exist
               for fstr in filt_str.split(fchar):
                 f = parser.filter_token.parseString(fstr)
