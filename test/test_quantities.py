@@ -9,6 +9,7 @@ from utils import *
 
 
 from dynconfig.render import *
+from dynconfig.utils import *
 
 def test_simple():
   logging.info("simple quantities")
@@ -28,3 +29,32 @@ def test_simple():
 
   assert type(rendered_data['pulse-width']) ==  float
   assert rendered_data['pulse-width'] ==  Approx(10e-6)
+
+def test_full_quantity_support():
+
+  logging.info("full quantity support")
+  data = { 'distance' : "$( 100 mile | q )"
+          ,'time' : "$( 1 hour | q )"
+          ,'velocity' : "$({distance}/{time} | to m/s)"
+         }
+
+  rendered_data = render( data, repeat = True )
+
+  assert str(rendered_data['distance']) == '100 mile'
+  assert rendered_data['distance'].magnitude == Approx(100)
+  assert str(rendered_data['distance'].units) == 'mile'
+  assert str(rendered_data['distance'].to('km')) == '160.9344 kilometer'
+
+  assert rendered_data['time'].magnitude == Approx(1)
+  assert str(rendered_data['time'].units) == 'hour'
+
+  assert rendered_data['velocity'].magnitude == Approx(44.704)
+  assert str(rendered_data['velocity'].units) == 'meter / second'
+
+  transform(rendered_data, lambda q : q.magnitude)
+
+  assert rendered_data['distance'] == Approx(100)
+  assert rendered_data['time'] == Approx(1)
+  assert rendered_data['velocity'] == Approx(44.704)
+
+

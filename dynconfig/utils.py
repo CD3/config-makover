@@ -18,3 +18,10 @@ def get_all_pdict_keys(d):
     else:
       keys.append(d.delimiter+str(k))
   return keys
+
+def transform(d,f):
+  for k in get_all_pdict_keys(d):
+    try:
+      d[k] = f(d[k])
+    except:
+      pass

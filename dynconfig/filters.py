@@ -21,9 +21,14 @@ def filter_mod(x,d):
   x = filter_mag(x)
   return x%(int(d))
 
-def filter_to(q,u):
+def filter_q(q):
   if isinstance(q,(str,unicode)):
     q = Q_(q)
+
+  return q
+
+def filter_to(q,u):
+  q = filter_q(q)
 
   return q.to(u)
 

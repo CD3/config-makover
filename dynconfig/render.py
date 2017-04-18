@@ -24,7 +24,7 @@ class parser:
   exp_token = pyparsing.Literal('$(') + pyparsing.SkipTo(pyparsing.Literal(')'), ignore=pyparsing.QuotedString('(',endQuoteChar=')')) + pyparsing.Literal(')')
 
   filter_name_token = pyparsing.Word(pyparsing.alphanums)
-  filter_arg_token  = pyparsing.Word(pyparsing.alphanums)
+  filter_arg_token  = pyparsing.Word(pyparsing.printables)
   filter_token = filter_name_token("name") + pyparsing.ZeroOrMore( filter_arg_token )("args")
 
 
