@@ -30,6 +30,7 @@ parser.add_argument("-o", "--output",
                     default="-",
                     help="Output file",)
 
+
 def ft(fn):
   '''Return filetype from filename.'''
   if fn.endswith(".dync"):
@@ -84,8 +85,6 @@ elif ofmt == "keyval":
 else:
   # default
   dumper = yaml.dump
-
-print loader,dumper
 
 
 config = readConfig( text, parser=loader )

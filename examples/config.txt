@@ -1,0 +1,5 @@
+grid.z.min = 0
+grid.z.n = 100
+description = example configuration
+grid.z.max = 0.0008
+dimension = 1

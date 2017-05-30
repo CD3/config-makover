@@ -5,9 +5,13 @@ def filter_int(x):
   x = filter_mag(x)
   return int(x)
 
+filter_i = filter_int
+
 def filter_float(x):
   x = filter_mag(x)
   return float(x)
+
+filter_f = filter_float
 
 def filter_str(x):
   x = filter_mag(x)
@@ -36,3 +40,5 @@ def filter_mag(q):
   if isinstance(q,Q_):
     q = q.magnitude
   return q
+
+filter_m = filter_mag

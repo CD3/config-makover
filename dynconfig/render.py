@@ -13,7 +13,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 import math
-default_locals = { 'math' : math, 'm' : math, 'abs' : abs, 'sum' : sum }
+default_locals = { 'math' : math, 'm' : math, 'abs' : abs, 'sum' : sum, 'float' : float, 'f' : float, 'int' : int, 'min' : min, 'max' : max }
 
 class parser:
   var_token = pyparsing.Literal('{')  + pyparsing.SkipTo(pyparsing.Literal('}'), failOn=pyparsing.Literal('}')) + pyparsing.Literal('}')

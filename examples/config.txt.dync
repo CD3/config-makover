@@ -1,0 +1,5 @@
+description = example configuration
+dimension = 1
+grid.z.n = 100
+grid.z.min = $(0 cm | q | m)
+grid.z.max = $(8 um | to cm | m)
