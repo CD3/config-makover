@@ -11,7 +11,7 @@ parser = ArgumentParser(description="Process a set of dynamic config files.")
 
 parser.add_argument("infile",
                     action="store",
-                    help="Config files to process." )
+                    help="Config file to process." )
 
 parser.add_argument("-f", "--from",
                     dest="_from",
