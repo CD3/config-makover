@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/python
 
 import sys, os
 moddir = os.path.join( os.path.dirname( __file__ ), '..' )
